@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "593246564818",
+    "project_id": "dms-vt",
+    "storage_bucket": "dms-vt.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:593246564818:android:44c1ca81ccdf00c760980b",
+        "android_client_info": {
+          "package_name": "com.colorcraft.colorcraft_paints"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBcmEd15vUYpYV4Qls5cDQZ6F5-vv2a85o"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

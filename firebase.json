@@ -1,0 +1,31 @@
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "dms-vt",
+          "appId": "1:593246564818:android:44c1ca81ccdf00c760980b",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "dms-vt",
+          "configurations": {
+            "android": "1:593246564818:android:44c1ca81ccdf00c760980b",
+            "ios": "1:593246564818:ios:77771d00b258579c60980b",
+            "web": "1:593246564818:web:d17dffb20474c5d460980b"
+          }
+        }
+      }
+    }
+  },
+  "hosting": {
+    "public": "build/web",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ]
+  }
+}
