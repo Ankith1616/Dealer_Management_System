@@ -52,7 +52,7 @@ class _AddEditProductScreenState extends ConsumerState<AddEditProductScreen> {
     _colorController = TextEditingController(text: p?.color ?? 'Premium White');
     _hexColorController = TextEditingController(text: p?.hexColor ?? '#FFFFFF');
     _finishTypeController = TextEditingController(text: p?.finishType ?? 'Matte');
-    _priceController = TextEditingController(text: p != null ? '${p.price}' : '250');
+    _priceController = TextEditingController(text: p != null ? (p.price % 1 == 0 ? '${p.price.toInt()}' : '${p.price}') : '0');
     _coverageController = TextEditingController(text: p != null ? '${p.coverage}' : '120');
     _dryingTimeController = TextEditingController(text: p != null ? '${p.dryingTime}' : '4');
     _warrantyController = TextEditingController(text: p != null ? '${p.warranty}' : '5');
