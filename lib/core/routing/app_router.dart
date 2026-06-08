@@ -35,10 +35,12 @@ final routerProvider = Provider<GoRouter>((ref) {
       final isLoginRoute = state.uri.path == '/login';
       final isRegisterRoute = state.uri.path == '/register';
 
-      // If user is not authenticated, let them browse guest screens or redirect to login for profile
+      // If user is not authenticated, let them browse guest screens or redirect to login for profile/reviews/feedback/dealer
       if (!isAuth) {
         if (state.uri.path == '/profile' || 
             state.uri.path == '/my-reviews' || 
+            state.uri.path.startsWith('/reviews') || 
+            state.uri.path.startsWith('/feedback') || 
             state.uri.path.startsWith('/dealer')) {
           return '/login';
         }
