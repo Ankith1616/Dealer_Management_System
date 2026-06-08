@@ -29,3 +29,10 @@ flutter:
   uses-material-design: true
   assets:
     - assets/images/
+    - assets/images/Asian/
+    - assets/images/Berger/
+    - assets/images/Berger/Exterior/
+    - assets/images/Berger/Interior/
+    - assets/images/Berger/Primers/
+    - assets/images/Nerolac/
+    - assets/images/Opus/

@@ -180,7 +180,7 @@ class MockData {
       description:
           'A smooth interior emulsion that helps reduce dust accumulation on walls and keeps the surface fresh.',
       warranty: 4,
-      images: [],
+      images: ['assets/images/Berger/Exterior/Anti Dust.jpg'],
       category: 'Interior Wall',
       rating: 4.4,
       reviewCount: 98,
@@ -203,7 +203,7 @@ class MockData {
       description:
           'Weather-resistant exterior paint designed to protect walls from sun, rain, and harsh seasonal conditions.',
       warranty: 7,
-      images: [],
+      images: ['assets/images/Berger/Exterior/Long Life 7.jpg'],
       category: 'Exterior Wall',
       rating: 4.6,
       reviewCount: 84,
@@ -893,7 +893,7 @@ class MockData {
       description:
           'Berger Walmasta Primer is a water-thinnable exterior wall primer that offers excellent adhesion and seals the surface perfectly.',
       warranty: 0.0,
-      images: [],
+      images: ['assets/images/Berger/Primers/Walmasta Ext & Int Primer.png'],
       category: 'Primer',
       rating: 4.3,
       reviewCount: 22,
@@ -916,7 +916,7 @@ class MockData {
       description:
           'Berger Walmasta Glow is a premium exterior emulsion that gives your outer walls a rich glow and robust protection against weather elements.',
       warranty: 3.0,
-      images: [],
+      images: ['assets/images/Berger/Exterior/Walmasta Glow.jpg'],
       category: 'Exterior Wall',
       rating: 4.4,
       reviewCount: 31,
@@ -939,7 +939,7 @@ class MockData {
       description:
           'Berger Bison Glow is a premium interior acrylic emulsion providing a beautiful, long-lasting glow and excellent washability.',
       warranty: 3.0,
-      images: [],
+      images: ['assets/images/Berger/Interior/Bison Glow.webp'],
       category: 'Interior Wall',
       rating: 4.5,
       reviewCount: 45,
@@ -962,7 +962,7 @@ class MockData {
       description:
           'Berger Dampstop Duo is an advanced primer cum waterproofing solution that provides excellent protection against dampness and efflorescence.',
       warranty: 5.0,
-      images: [],
+      images: ['assets/images/Berger/Primers/Damp Stop.webp'],
       category: 'Waterproofing',
       rating: 4.6,
       reviewCount: 28,
@@ -985,7 +985,7 @@ class MockData {
       description:
           'Berger Dampstop Advanced is a premium waterproofing compound designed to tackle high hydrostatic pressure and prevent severe water leakage.',
       warranty: 8.0,
-      images: [],
+      images: ['assets/images/Berger/Primers/Damp Stop Advanced.jpg'],
       category: 'Waterproofing',
       rating: 4.8,
       reviewCount: 36,
@@ -1008,7 +1008,7 @@ class MockData {
       description:
           'Berger Damp Shield Primer is a water-thinnable self-priming waterproofing undercoat that seals pores and blocks dampness effectively.',
       warranty: 3.0,
-      images: [],
+      images: ['assets/images/Berger/Primers/Damp Sheild.webp'],
       category: 'Primer',
       rating: 4.5,
       reviewCount: 19,
@@ -1031,7 +1031,7 @@ class MockData {
       description:
           'Berger Seal-O-Primer is an undercoat sealant designed to seal dampness, alkaline surfaces, and efflorescence on walls.',
       warranty: 0.0,
-      images: [],
+      images: ['assets/images/Berger/Primers/Seal-o-Primer.jpeg'],
       category: 'Primer',
       rating: 4.3,
       reviewCount: 25,
@@ -1054,7 +1054,7 @@ class MockData {
       description:
           'Berger Weathercoat Anti Dust exterior paint features unique dust guard technology that prevents dust from sticking to outer walls.',
       warranty: 5.0,
-      images: [],
+      images: ['assets/images/Berger/Exterior/Anti Dust.jpg'],
       category: 'Exterior Wall',
       rating: 4.6,
       reviewCount: 38,
@@ -1077,7 +1077,7 @@ class MockData {
       description:
           'Berger Weathercoat Long Life 10 offers superior performance with a 10-year warranty, protecting walls against algae, flaking, and dust accumulation.',
       warranty: 10.0,
-      images: [],
+      images: ['assets/images/Berger/Exterior/Long Life 10.webp'],
       category: 'Exterior Wall',
       rating: 4.7,
       reviewCount: 52,
@@ -1100,7 +1100,7 @@ class MockData {
       description:
           'Berger Weathercoat Long Life 15 is a luxury exterior paint featuring PU and silicon additives that offer premium shield and 15 years warranty.',
       warranty: 15.0,
-      images: [],
+      images: ['assets/images/Berger/Exterior/Long Life 15.webp'],
       category: 'Exterior Wall',
       rating: 4.9,
       reviewCount: 47,
@@ -1123,7 +1123,7 @@ class MockData {
       description:
           'Berger Easy Clean is a highly washable interior paint equipped with stain-resistant technology to keep walls spotless.',
       warranty: 5.0,
-      images: [],
+      images: ['assets/images/Berger/Interior/Easy Clean.webp'],
       category: 'Interior Wall',
       rating: 4.6,
       reviewCount: 60,
@@ -1146,7 +1146,7 @@ class MockData {
       description:
           'Berger Easy Clean Fresh offers superb washability along with a pleasant fragrance that neutralizes indoor odors and keeps air fresh.',
       warranty: 6.0,
-      images: [],
+      images: ['assets/images/Berger/Interior/Easy Clean Fresh.jpg'],
       category: 'Interior Wall',
       rating: 4.7,
       reviewCount: 42,
@@ -1169,7 +1169,7 @@ class MockData {
       description:
           'Berger Silk Glamor is a luxury interior emulsion formulated with Crystal Reflective Technology to give walls a glamorous, ultra-sheen finish.',
       warranty: 8.0,
-      images: [],
+      images: ['assets/images/Berger/Interior/Silk Glamor.png'],
       category: 'Interior Wall',
       rating: 4.8,
       reviewCount: 55,
@@ -1353,7 +1353,7 @@ class MockData {
       description:
           'Berger Roof Cool & Seal is a high solar reflective coating combined with a waterproofing barrier to keep buildings cooler and dry.',
       warranty: 7.0,
-      images: [],
+      images: ['assets/images/Berger/Roof Kool & Seal.jpg'],
       category: 'Waterproofing',
       rating: 4.6,
       reviewCount: 22,
@@ -1376,7 +1376,7 @@ class MockData {
       description:
           'Berger PU Roof Coat is a premium polyurethane liquid applied waterproofing membrane that offers extreme durability and structural protection.',
       warranty: 10.0,
-      images: [],
+      images: ['assets/images/Berger/Pu Roofkoat.jpg'],
       category: 'Waterproofing',
       rating: 4.8,
       reviewCount: 15,
