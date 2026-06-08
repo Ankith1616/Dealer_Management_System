@@ -165,7 +165,7 @@ class _DashboardGridItemState extends State<_DashboardGridItem> {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         transform: _isHovered
-            ? (Matrix4.identity()..translate(0, -4, 0)..scale(1.02))
+            ? (Matrix4.translationValues(0.0, -4.0, 0.0) * Matrix4.diagonal3Values(1.02, 1.02, 1.0))
             : Matrix4.identity(),
         child: GlassCard(
           padding: EdgeInsets.zero,
@@ -318,7 +318,7 @@ class _ComplaintsBottomSheetState extends State<_ComplaintsBottomSheet> {
               ),
               const SizedBox(height: AppSizes.p16),
               DropdownButtonFormField<String>(
-                value: _selectedType,
+                initialValue: _selectedType,
                 decoration: const InputDecoration(labelText: 'Type of Query'),
                 items: const [
                   DropdownMenuItem(value: 'Inquiry', child: Text('General Inquiry')),
