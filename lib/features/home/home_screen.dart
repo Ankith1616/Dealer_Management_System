@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/constants/app_sizes.dart';
-import 'widgets/dashboard_tabs.dart';
+import 'widgets/dashboard_grid.dart';
 import 'widgets/shop_offer_carousel.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -30,7 +30,7 @@ class HomeScreen extends StatelessWidget {
               const SizedBox(height: AppSizes.p24),
               const ShopOfferCarousel(),
               const SizedBox(height: AppSizes.p24),
-              const DashboardTabs(),
+              const DashboardGrid(),
             ],
           ),
         ),
