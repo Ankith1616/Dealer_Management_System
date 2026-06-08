@@ -69,7 +69,7 @@ class ProfileScreen extends ConsumerWidget {
                         backgroundImage: NetworkImage(
                           user.photoUrl.isNotEmpty
                               ? user.photoUrl
-                              : 'https://i.pravatar.cc/150?u=${user.email.hashCode}',
+                              : 'https://i.pravatar.cc/150?u=${(user.email ?? user.phoneNumber).hashCode}',
                         ),
                         backgroundColor: AppColors.primary.withValues(alpha: 0.1),
                       ),
@@ -82,11 +82,21 @@ class ProfileScreen extends ConsumerWidget {
                       ),
                       const SizedBox(height: AppSizes.p8),
                       Text(
-                        user.email,
+                        user.phoneNumber,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: Colors.grey,
+                              fontWeight: FontWeight.bold,
+                              color: isDark ? Colors.white70 : AppColors.textPrimary,
                             ),
                       ),
+                      if (user.email != null && user.email!.isNotEmpty) ...[
+                        const SizedBox(height: AppSizes.p4),
+                        Text(
+                          user.email!,
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                color: Colors.grey,
+                              ),
+                        ),
+                      ],
                       const SizedBox(height: AppSizes.p16),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: AppSizes.p16, vertical: 8.0),

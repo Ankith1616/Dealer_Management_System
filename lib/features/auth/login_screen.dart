@@ -18,12 +18,12 @@ class LoginScreen extends ConsumerStatefulWidget {
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController();
+  final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
 
   @override
   void dispose() {
-    _emailController.dispose();
+    _phoneController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
@@ -31,7 +31,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Future<void> _submit() async {
     if (_formKey.currentState!.validate()) {
       final success = await ref.read(authStateProvider.notifier).login(
-            _emailController.text.trim(),
+            _phoneController.text.trim(),
             _passwordController.text,
           );
       if (success && mounted) {
@@ -53,9 +53,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     }
   }
 
-  void _quickFill(String email, String password) {
+  void _quickFill(String phone, String password) {
     setState(() {
-      _emailController.text = email;
+      _phoneController.text = phone;
       _passwordController.text = password;
     });
   }
@@ -158,12 +158,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               ),
                               const SizedBox(height: AppSizes.p32),
                               AuthTextField(
-                                controller: _emailController,
-                                labelText: 'Email Address',
-                                hintText: 'Enter your email',
-                                prefixIcon: Icons.email_outlined,
-                                validator: Validators.email,
-                                keyboardType: TextInputType.emailAddress,
+                                controller: _phoneController,
+                                labelText: 'Mobile Number',
+                                hintText: 'Enter 10-digit mobile number',
+                                prefixIcon: Icons.phone_android_outlined,
+                                validator: Validators.phone,
+                                keyboardType: TextInputType.phone,
                               ),
                               const SizedBox(height: AppSizes.p20),
                               AuthTextField(
@@ -215,7 +215,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                                 borderRadius: BorderRadius.circular(AppSizes.radiusS),
                                               ),
                                             ),
-                                            onPressed: () => _quickFill('customer@test.com', '123456'),
+                                            onPressed: () => _quickFill('9876543210', '123456'),
                                             child: const Text('Customer', style: TextStyle(fontSize: 12)),
                                           ),
                                         ),
@@ -229,7 +229,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                                 borderRadius: BorderRadius.circular(AppSizes.radiusS),
                                               ),
                                             ),
-                                            onPressed: () => _quickFill('dealer@test.com', '123456'),
+                                            onPressed: () => _quickFill('9876543211', '123456'),
                                             child: const Text('Dealer (Admin)', style: TextStyle(fontSize: 12)),
                                           ),
                                         ),

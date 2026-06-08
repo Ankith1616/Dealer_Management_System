@@ -19,6 +19,7 @@ class RegisterScreen extends ConsumerStatefulWidget {
 class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
+  final _phoneController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   String _selectedRole = 'customer'; // customer or dealer
@@ -26,6 +27,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   @override
   void dispose() {
     _nameController.dispose();
+    _phoneController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
@@ -33,8 +35,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
   Future<void> _submit() async {
     if (_formKey.currentState!.validate()) {
+      final emailValue = _emailController.text.trim();
       final success = await ref.read(authStateProvider.notifier).register(
-            _emailController.text.trim(),
+            _phoneController.text.trim(),
+            emailValue.isEmpty ? null : emailValue,
             _passwordController.text,
             _nameController.text.trim(),
             _selectedRole,
@@ -155,11 +159,20 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                               ),
                               const SizedBox(height: AppSizes.p16),
                               AuthTextField(
+                                controller: _phoneController,
+                                labelText: 'Mobile Number',
+                                hintText: 'Enter 10-digit mobile number',
+                                prefixIcon: Icons.phone_android_outlined,
+                                validator: Validators.phone,
+                                keyboardType: TextInputType.phone,
+                              ),
+                              const SizedBox(height: AppSizes.p16),
+                              AuthTextField(
                                 controller: _emailController,
-                                labelText: 'Email Address',
-                                hintText: 'Enter your email',
+                                labelText: 'Email Address (Optional)',
+                                hintText: 'Enter your email (optional)',
                                 prefixIcon: Icons.email_outlined,
-                                validator: Validators.email,
+                                validator: Validators.optionalEmail,
                                 keyboardType: TextInputType.emailAddress,
                               ),
                               const SizedBox(height: AppSizes.p16),
