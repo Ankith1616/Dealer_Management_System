@@ -11,6 +11,15 @@ void main() {
       ),
     );
 
+    // Let GoRouter initialize and start navigating
+    await tester.pump();
+
+    // Advance the virtual clock by 1 second to resolve the mock repository network delays (max 500ms)
+    await tester.pump(const Duration(seconds: 1));
+
+    // Wait for all route transitions and animations to finish settling
+    await tester.pumpAndSettle();
+
     // Verify that the app starts up without crash
     expect(tester.takeException(), isNull);
   });
