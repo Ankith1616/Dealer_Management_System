@@ -1,14 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/constants/app_sizes.dart';
+import '../../providers/auth_provider.dart';
 import 'widgets/dashboard_grid.dart';
 import 'widgets/shop_offer_carousel.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final user = ref.watch(currentUserProvider);
+    final userName = user?.displayName ?? 'Guest';
+
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
@@ -17,8 +22,8 @@ class HomeScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'ColorCraft Dashboard',
-                style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                'Welcome to Vasavi Traders, $userName',
+                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
               ),
