@@ -224,7 +224,7 @@ class NerolacMockData {
       reviewCount: 62,
       dealerId: 'dealer_1',
       createdAt: DateTime.now().subtract(const Duration(days: 5)),
-      range: 'Economy',
+      range: 'Premium',
       speciality: 'Stain Resistant',
     ),
     ProductModel(
@@ -300,7 +300,7 @@ class NerolacMockData {
       dealerId: 'dealer_1',
       createdAt: DateTime.now().subtract(const Duration(days: 11)),
       range: 'Premium',
-      speciality: 'Dust Resistant',
+      speciality: 'Dust Resistant with sheen',
     ),
     ProductModel(
       id: 'p_22',
@@ -326,7 +326,7 @@ class NerolacMockData {
       reviewCount: 42,
       dealerId: 'dealer_1',
       createdAt: DateTime.now().subtract(const Duration(days: 13)),
-      range: 'Premium',
+      range: 'Super Premium',
       speciality: 'Elegant Sheen Finish',
     ),
     ProductModel(
@@ -426,7 +426,7 @@ class NerolacMockData {
       reviewCount: 20,
       dealerId: 'dealer_1',
       createdAt: DateTime.now().subtract(const Duration(days: 3)),
-      range: 'Premium',
+      range: 'Luxury',
       speciality: 'Advanced Waterproofing',
     ),
     ProductModel(
@@ -451,7 +451,7 @@ class NerolacMockData {
       reviewCount: 18,
       dealerId: 'dealer_1',
       createdAt: DateTime.now().subtract(const Duration(days: 4)),
-      range: 'Premium',
+      range: 'Super Luxury',
       speciality: 'Advanced Waterproofing',
     ),
     ProductModel(
@@ -503,7 +503,7 @@ class NerolacMockData {
       reviewCount: 22,
       dealerId: 'dealer_1',
       createdAt: DateTime.now().subtract(const Duration(days: 2)),
-      range: 'Luxury',
+      range: 'Super Luxury',
       speciality: '14-Year Exterior Protection',
     ),
     ProductModel(
@@ -529,7 +529,7 @@ class NerolacMockData {
       dealerId: 'dealer_1',
       createdAt: DateTime.now().subtract(const Duration(days: 3)),
       range: 'Super Luxury',
-      speciality: '20-Year Robust Protection',
+      speciality: '20-Year Robust and Bullet Proof Protection',
     ),
     ProductModel(
       id: 'p_143',
