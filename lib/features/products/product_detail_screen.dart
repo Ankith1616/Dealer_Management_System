@@ -61,6 +61,34 @@ class ProductDetailScreen extends ConsumerWidget {
                             fit: BoxFit.cover,
                             fallback: Container(color: bgColor),
                           ),
+                          if (product.range.isNotEmpty)
+                            Positioned(
+                              top: AppSizes.p16,
+                              left: AppSizes.p16,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                decoration: BoxDecoration(
+                                  color: _getRangeColor(product.range),
+                                  borderRadius: BorderRadius.circular(AppSizes.radiusM),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withValues(alpha: 0.25),
+                                      blurRadius: 6,
+                                      offset: const Offset(0, 3),
+                                    ),
+                                  ],
+                                ),
+                                child: Text(
+                                  product.range.toUpperCase(),
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w900,
+                                    letterSpacing: 0.5,
+                                  ),
+                                ),
+                              ),
+                            ),
                           Container(
                             decoration: BoxDecoration(
                               gradient: LinearGradient(
@@ -222,5 +250,19 @@ class ProductDetailScreen extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  Color _getRangeColor(String range) {
+    switch (range.toLowerCase()) {
+      case 'super luxury':
+        return const Color(0xFFD4AF37); // Gold
+      case 'luxury':
+        return const Color(0xFF8E44AD); // Purple
+      case 'premium':
+        return const Color(0xFF2980B9); // Blue
+      case 'economy':
+      default:
+        return const Color(0xFF27AE60); // Green
+    }
   }
 }

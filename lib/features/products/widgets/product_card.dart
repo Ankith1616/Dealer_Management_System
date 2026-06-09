@@ -55,6 +55,34 @@ class ProductCard extends ConsumerWidget {
                       borderRadius: const BorderRadius.vertical(top: Radius.circular(AppSizes.radiusL)),
                     ),
                   ),
+                  if (product.range.isNotEmpty)
+                    Positioned(
+                      top: 8,
+                      left: 8,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: _getRangeColor(product.range),
+                          borderRadius: BorderRadius.circular(4),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.2),
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Text(
+                          product.range.toUpperCase(),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 8,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ),
+                    ),
                   Positioned(
                     top: 8,
                     right: 8,
@@ -154,5 +182,19 @@ class ProductCard extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  Color _getRangeColor(String range) {
+    switch (range.toLowerCase()) {
+      case 'super luxury':
+        return const Color(0xFFD4AF37); // Gold
+      case 'luxury':
+        return const Color(0xFF8E44AD); // Purple
+      case 'premium':
+        return const Color(0xFF2980B9); // Blue
+      case 'economy':
+      default:
+        return const Color(0xFF27AE60); // Green
+    }
   }
 }

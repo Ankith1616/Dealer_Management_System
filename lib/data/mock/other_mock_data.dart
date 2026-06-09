@@ -2,57 +2,7 @@ import '../models/product_model.dart';
 
 class OtherMockData {
   static final List<ProductModel> products = [
-ProductModel(
-      id: 'p_66',
-      name: 'Roofseal',
-      brand: 'Dr. Fixit',
-      paintType: 'Elastomeric Waterproofing',
-      color: 'White',
-      hexColor: '#FFFFFF',
-      finishType: 'Matte',
-      price: 0.0,
-      coverage: 50.0,
-      dryingTime: 6.0,
-      sizes: ['1L', '4L', '10L', '20L'],
-      usage: 'Roofs & Terraces',
-      description:
-          'Dr. Fixit Roofseal is a high-build, fiber-reinforced elastomeric waterproofing coating designed specifically for roof and terrace concrete.',
-      warranty: 7.0,
-      images: [],
-      category: 'Waterproofing',
-      rating: 4.6,
-      reviewCount: 40,
-      dealerId: 'dealer_1',
-      createdAt: DateTime.now().subtract(const Duration(days: 8)),
-      range: 'Premium',
-      speciality: 'Advanced Waterproofing',
-    ),
-ProductModel(
-      id: 'p_67',
-      name: 'Sureseal',
-      brand: 'Dr. Fixit',
-      paintType: 'Waterproofing Coating',
-      color: 'Black',
-      hexColor: '#000000',
-      finishType: 'Matte',
-      price: 0.0,
-      coverage: 55.0,
-      dryingTime: 4.0,
-      sizes: ['1L', '4L', '10L', '20L'],
-      usage: 'Basements & Foundations',
-      description:
-          'Dr. Fixit Sureseal is a high-performance liquid bitumen waterproofing membrane that blocks moisture transmission in retaining walls and structures.',
-      warranty: 5.0,
-      images: [],
-      category: 'Waterproofing',
-      rating: 4.4,
-      reviewCount: 25,
-      dealerId: 'dealer_1',
-      createdAt: DateTime.now().subtract(const Duration(days: 9)),
-      range: 'Premium',
-      speciality: 'Advanced Waterproofing',
-    ),
-ProductModel(
+    ProductModel(
       id: 'p_68',
       name: 'Surya Cool Paste',
       brand: 'Surya',
@@ -68,7 +18,7 @@ ProductModel(
       description:
           'Surya Cool Paste is an economical, high-efficiency heat-reflective paste that protects roofs against water ingress and keeps interiors cool.',
       warranty: 3.0,
-      images: [],
+      images: ['assets/images/Surya Cool Paste.jpg'],
       category: 'Waterproofing',
       rating: 4.3,
       reviewCount: 15,
@@ -77,7 +27,7 @@ ProductModel(
       range: 'Premium',
       speciality: 'High Quality Paint',
     ),
-ProductModel(
+    ProductModel(
       id: 'p_69',
       name: 'Swagat Emulsion',
       brand: 'Nexon Paints',
@@ -93,7 +43,7 @@ ProductModel(
       description:
           'Nexon Paints Swagat Emulsion is a cost-effective, high-coverage interior emulsion offering a clean matte finish for your home walls.',
       warranty: 2.0,
-      images: [],
+      images: ['assets/images/Nexon-Swagat-Espro.jpeg'],
       category: 'Interior Wall',
       rating: 4.2,
       reviewCount: 12,
@@ -102,7 +52,7 @@ ProductModel(
       range: 'Premium',
       speciality: 'High Quality Paint',
     ),
-ProductModel(
+    ProductModel(
       id: 'p_70',
       name: 'Nexon Texture',
       brand: 'Nexon Paints',
@@ -118,7 +68,7 @@ ProductModel(
       description:
           'Nexon Paints  Texture offers high durability and unique textured finishes for architectural accent walls, designed to enhance modern home decors.',
       warranty: 4.0,
-      images: [],
+      images: ['assets/images/Nexon Texture.jpeg'],
       category: 'Texture',
       rating: 4.4,
       reviewCount: 18,
@@ -127,7 +77,7 @@ ProductModel(
       range: 'Premium',
       speciality: 'High Quality Paint',
     ),
-ProductModel(
+    ProductModel(
       id: 'p_71',
       name: 'Vivo Primer Exterior',
       brand: 'Nexon Paints',
@@ -143,7 +93,7 @@ ProductModel(
       description:
           'Nexon Paints Vivo Primer Exterior is a water-thinnable primer that secures high topcoat adhesion, blocks surface dampness, and provides high opacity for exterior walls.',
       warranty: 0.0,
-      images: [],
+      images: ['assets/images/Nexon-Vivo-primer.jpeg'],
       category: 'Primer',
       rating: 4.3,
       reviewCount: 15,
@@ -165,7 +115,8 @@ ProductModel(
       dryingTime: 4.0,
       sizes: ['4L', '10L', '20L'],
       usage: 'Terrace and roof waterproofing',
-      description: 'Dr. Fixit Roofseal Classic is a high performance elastomeric acrylic waterproofing coating for terraces and roofs.',
+      description:
+          'Dr. Fixit Roofseal Classic is a high performance elastomeric acrylic waterproofing coating for terraces and roofs.',
       warranty: 5.0,
       images: ['assets/images/FIxit/Dr_fixit_Roofseal_Classic.webp'],
       category: 'Waterproofing',
@@ -189,7 +140,8 @@ ProductModel(
       dryingTime: 4.0,
       sizes: ['1kg', '4kg', '10kg', '20kg'],
       usage: 'General purpose waterproofing',
-      description: 'Dr. Fixit Sure Seal is a bitumen based waterproofing liquid membrane for structural basements and roofs.',
+      description:
+          'Dr. Fixit Sure Seal is a bitumen based waterproofing liquid membrane for structural basements and roofs.',
       warranty: 3.0,
       images: ['assets/images/FIxit/dr-fixit-sureseal.jpg'],
       category: 'Waterproofing',
@@ -213,7 +165,8 @@ ProductModel(
       dryingTime: 3.0,
       sizes: ['200g', '500g', '1kg'],
       usage: 'Sealing plaster cracks up to 5mm',
-      description: 'Dr. Fixit Crack-X Paste is a ready-to-use acrylic paste for sealing plaster cracks on internal and external surfaces.',
+      description:
+          'Dr. Fixit Crack-X Paste is a ready-to-use acrylic paste for sealing plaster cracks on internal and external surfaces.',
       warranty: 1.0,
       images: ['assets/images/FIxit/dr-fixit-Crack-x-Paste.webp'],
       category: 'Waterproofing',
@@ -237,7 +190,8 @@ ProductModel(
       dryingTime: 0.0,
       sizes: ['200ml', '1L', '5L', '10L', '20L'],
       usage: 'Concrete and plaster waterproofing admixture',
-      description: 'Dr. Fixit 101 LW+ is a liquid waterproofing admixture for concrete, mortar, and plaster, improving workability and durability.',
+      description:
+          'Dr. Fixit 101 LW+ is a liquid waterproofing admixture for concrete, mortar, and plaster, improving workability and durability.',
       warranty: 0.0,
       images: ['assets/images/FIxit/dr-fixit-101-LW+.jpg'],
       category: 'Waterproofing',
@@ -261,7 +215,8 @@ ProductModel(
       dryingTime: 4.0,
       sizes: ['500g', '1kg', '5kg', '10kg', '20kg'],
       usage: 'Waterproofing and concrete repair bonding agent',
-      description: 'Dr. Fixit 301 URP is a styrene butadiene copolymer latex based bonding agent for concrete repair and waterproofing.',
+      description:
+          'Dr. Fixit 301 URP is a styrene butadiene copolymer latex based bonding agent for concrete repair and waterproofing.',
       warranty: 0.0,
       images: ['assets/images/FIxit/dr-fixit-301.webp'],
       category: 'Waterproofing',
@@ -271,6 +226,6 @@ ProductModel(
       createdAt: DateTime.now().subtract(const Duration(days: 9)),
       range: 'Premium',
       speciality: 'SBR Latex Bonding & Repair',
-    )
+    ),
   ];
 }

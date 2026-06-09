@@ -1467,7 +1467,7 @@ ProductModel(
       usage: 'Concrete and mortar admixture',
       description: 'Asian Paints SmartCare Vitalia Neo is an advanced cement waterproofing liquid admixture that reduces water permeability in concrete and mortar.',
       warranty: 0.0,
-      images: ['assets/images/Asian/Waterproofing/smartcare-vitalia-neo.avif'],
+      images: ['assets/images/Asian/Waterproofing/smartcare-vitalia-neo.webp'],
       category: 'Waterproofing',
       rating: 4.6,
       reviewCount: 34,

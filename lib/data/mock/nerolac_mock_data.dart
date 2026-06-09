@@ -2,7 +2,7 @@ import '../models/product_model.dart';
 
 class NerolacMockData {
   static final List<ProductModel> products = [
-ProductModel(
+    ProductModel(
       id: 'p_10',
       name: 'Nodust',
       brand: 'Nerolac Paints',
@@ -27,7 +27,7 @@ ProductModel(
       range: 'Premium',
       speciality: 'Dust Resistant',
     ),
-ProductModel(
+    ProductModel(
       id: 'p_11',
       name: 'Beauty Sheen',
       brand: 'Nerolac Paints',
@@ -52,7 +52,7 @@ ProductModel(
       range: 'Economy',
       speciality: 'Elegant Sheen Finish',
     ),
-ProductModel(
+    ProductModel(
       id: 'p_12',
       name: 'Excel Total',
       brand: 'Nerolac Paints',
@@ -77,7 +77,7 @@ ProductModel(
       range: 'Premium',
       speciality: 'High Quality Paint',
     ),
-ProductModel(
+    ProductModel(
       id: 'p_13',
       name: 'Suraksha Plus',
       brand: 'Nerolac Paints',
@@ -102,7 +102,7 @@ ProductModel(
       range: 'Economy',
       speciality: 'High Quality Paint',
     ),
-ProductModel(
+    ProductModel(
       id: 'p_14',
       name: 'Suraksha',
       brand: 'Nerolac Paints',
@@ -127,9 +127,9 @@ ProductModel(
       range: 'Economy',
       speciality: 'High Quality Paint',
     ),
-ProductModel(
+    ProductModel(
       id: 'p_15',
-      name: 'Beauty',
+      name: 'Beauty Smooth',
       brand: 'Nerolac Paints',
       paintType: 'Interior Emulsion',
       color: 'Cream',
@@ -152,7 +152,7 @@ ProductModel(
       range: 'Economy',
       speciality: 'High Quality Paint',
     ),
-ProductModel(
+    ProductModel(
       id: 'p_16',
       name: 'Suraksha Sheen',
       brand: 'Nerolac Paints',
@@ -177,7 +177,7 @@ ProductModel(
       range: 'Economy',
       speciality: 'Dust Resistant',
     ),
-ProductModel(
+    ProductModel(
       id: 'p_17',
       name: 'Beauty Little Master',
       brand: 'Nerolac Paints',
@@ -202,7 +202,7 @@ ProductModel(
       range: 'Economy',
       speciality: 'High Quality Paint',
     ),
-ProductModel(
+    ProductModel(
       id: 'p_18',
       name: 'Beauty Gold Washable',
       brand: 'Nerolac Paints',
@@ -227,9 +227,9 @@ ProductModel(
       range: 'Economy',
       speciality: 'Stain Resistant',
     ),
-ProductModel(
+    ProductModel(
       id: 'p_19',
-      name: 'BGW+',
+      name: 'Beauty Gold Washable Plus',
       brand: 'Nerolac Paints',
       paintType: 'Premium Interior Emulsion',
       color: 'Chalk White',
@@ -252,7 +252,7 @@ ProductModel(
       range: 'Premium',
       speciality: 'Elegant Sheen Finish',
     ),
-ProductModel(
+    ProductModel(
       id: 'p_20',
       name: 'Impression Sheen',
       brand: 'Nerolac Paints',
@@ -277,7 +277,7 @@ ProductModel(
       range: 'Luxury',
       speciality: 'High Quality Paint',
     ),
-ProductModel(
+    ProductModel(
       id: 'p_21',
       name: 'Excel Sheen',
       brand: 'Nerolac Paints',
@@ -302,7 +302,7 @@ ProductModel(
       range: 'Premium',
       speciality: 'Dust Resistant',
     ),
-ProductModel(
+    ProductModel(
       id: 'p_22',
       name: 'Excel Mica Marble Stretch and Sheen',
       brand: 'Nerolac Paints',
@@ -318,7 +318,9 @@ ProductModel(
       description:
           'An advanced elastomeric exterior paint reinforced with Mica and Marble particles. Offers exceptional stretch to cover hairline cracks and a gorgeous sheen.',
       warranty: 8.0,
-      images: ['assets/images/Nerolac/Exterior/Excel Mica Marble Stretch & Sheen.webp'],
+      images: [
+        'assets/images/Nerolac/Exterior/Excel Mica Marble Stretch & Sheen.webp',
+      ],
       category: 'Exterior Wall',
       rating: 4.7,
       reviewCount: 42,
@@ -327,7 +329,7 @@ ProductModel(
       range: 'Premium',
       speciality: 'Elegant Sheen Finish',
     ),
-ProductModel(
+    ProductModel(
       id: 'p_23',
       name: 'Everlast 12',
       brand: 'Nerolac Paints',
@@ -352,7 +354,7 @@ ProductModel(
       range: 'Luxury',
       speciality: 'High Quality Paint',
     ),
-ProductModel(
+    ProductModel(
       id: 'p_52',
       name: 'Beauty Acrylic Distemper',
       brand: 'Nerolac Paints',
@@ -377,7 +379,7 @@ ProductModel(
       range: 'Economy',
       speciality: 'High Quality Paint',
     ),
-ProductModel(
+    ProductModel(
       id: 'p_54',
       name: 'No Heat',
       brand: 'Nerolac Paints',
@@ -402,7 +404,7 @@ ProductModel(
       range: 'Premium',
       speciality: 'Advanced Waterproofing',
     ),
-ProductModel(
+    ProductModel(
       id: 'p_55',
       name: 'No Damp',
       brand: 'Nerolac Paints',
@@ -427,7 +429,7 @@ ProductModel(
       range: 'Premium',
       speciality: 'Advanced Waterproofing',
     ),
-ProductModel(
+    ProductModel(
       id: 'p_56',
       name: 'No Damp Plus',
       brand: 'Nerolac Paints',
@@ -452,7 +454,7 @@ ProductModel(
       range: 'Premium',
       speciality: 'Advanced Waterproofing',
     ),
-ProductModel(
+    ProductModel(
       id: 'p_57',
       name: 'Damp Protect Primer',
       brand: 'Nerolac Paints',
@@ -468,7 +470,9 @@ ProductModel(
       description:
           'Nerolac Damp Protect Primer is a heavy-duty undercoat that seals masonry substrates and prevents water seepage and salt efflorescence.',
       warranty: 3.0,
-      images: ['assets/images/Nerolac/Waterproofing/Damp Protect Exterior.webp'],
+      images: [
+        'assets/images/Nerolac/Waterproofing/Damp Protect Exterior.webp',
+      ],
       category: 'Primer',
       rating: 4.3,
       reviewCount: 12,
@@ -490,7 +494,8 @@ ProductModel(
       dryingTime: 4.0,
       sizes: ['1L', '4L', '10L', '20L'],
       usage: 'Exterior Walls',
-      description: 'Nerolac Excel Everlast 14 is a premium exterior paint offering 14 years of warranty against weather, dust, and fading.',
+      description:
+          'Nerolac Excel Everlast 14 is a premium exterior paint offering 14 years of warranty against weather, dust, and fading.',
       warranty: 14.0,
       images: ['assets/images/Nerolac/Exterior/Excel_Everlast_14.webp'],
       category: 'Exterior Wall',
@@ -514,7 +519,8 @@ ProductModel(
       dryingTime: 4.0,
       sizes: ['1L', '4L', '10L', '20L'],
       usage: 'Exterior Walls',
-      description: 'Nerolac Excel Everlast 20 is an ultra-premium exterior paint offering up to 20 years of robust protection and stretchability.',
+      description:
+          'Nerolac Excel Everlast 20 is an ultra-premium exterior paint offering up to 20 years of robust protection and stretchability.',
       warranty: 20.0,
       images: ['assets/images/Nerolac/Exterior/Excel_Everlast_20.webp'],
       category: 'Exterior Wall',
@@ -538,7 +544,8 @@ ProductModel(
       dryingTime: 4.0,
       sizes: ['1L', '4L', '10L', '20L'],
       usage: 'Exterior Walls',
-      description: 'Nerolac Suraksha Plus Wow White provides a premium super-white matte finish for exterior walls with excellent weather guard properties.',
+      description:
+          'Nerolac Suraksha Plus Wow White provides a premium super-white matte finish for exterior walls with excellent weather guard properties.',
       warranty: 3.0,
       images: ['assets/images/Nerolac/Exterior/Suraksha Plus Wow white.jpeg'],
       category: 'Exterior Wall',
@@ -562,7 +569,8 @@ ProductModel(
       dryingTime: 5.0,
       sizes: ['1L', '4L', '10L', '20L'],
       usage: 'Exterior Walls',
-      description: 'Nerolac Excel Anti Peel is an exterior paint designed to protect walls from moisture peeling, sun, rain, and harsh seasonal conditions.',
+      description:
+          'Nerolac Excel Anti Peel is an exterior paint designed to protect walls from moisture peeling, sun, rain, and harsh seasonal conditions.',
       warranty: 7.0,
       images: ['assets/images/Nerolac/Exterior/excel_anti_peel.webp'],
       category: 'Exterior Wall',
@@ -586,7 +594,8 @@ ProductModel(
       dryingTime: 4.0,
       sizes: ['1L', '4L', '10L', '20L'],
       usage: 'Interior Walls',
-      description: 'Nerolac Impression Kashmir provides a silky smooth matt finish that gives your interior walls a premium, luxurious feel.',
+      description:
+          'Nerolac Impression Kashmir provides a silky smooth matt finish that gives your interior walls a premium, luxurious feel.',
       warranty: 6.0,
       images: ['assets/images/Nerolac/Interior/impressions-kashmir.webp'],
       category: 'Interior Wall',
@@ -610,9 +619,12 @@ ProductModel(
       dryingTime: 4.0,
       sizes: ['1L', '4L', '10L', '20L'],
       usage: 'Interior Walls',
-      description: 'A luxurious interior emulsion paint that delivers an exceptionally rich high sheen finish with high stain resistance.',
+      description:
+          'A luxurious interior emulsion paint that delivers an exceptionally rich high sheen finish with high stain resistance.',
       warranty: 7.0,
-      images: ['assets/images/Nerolac/Interior/Impression Kashmir High Sheen.webp'],
+      images: [
+        'assets/images/Nerolac/Interior/Impression Kashmir High Sheen.webp',
+      ],
       category: 'Interior Wall',
       rating: 4.8,
       reviewCount: 24,
@@ -634,9 +646,12 @@ ProductModel(
       dryingTime: 4.0,
       sizes: ['1L', '4L', '10L', '20L'],
       usage: 'Interior Walls',
-      description: 'An affordable distemper-grade emulsion offering an elegant sheen finish for budget-friendly homes.',
+      description:
+          'An affordable distemper-grade emulsion offering an elegant sheen finish for budget-friendly homes.',
       warranty: 2.0,
-      images: ['assets/images/Nerolac/Interior/Beauty Little Master Sheen.jpeg'],
+      images: [
+        'assets/images/Nerolac/Interior/Beauty Little Master Sheen.jpeg',
+      ],
       category: 'Interior Wall',
       rating: 4.1,
       reviewCount: 18,
@@ -658,7 +673,8 @@ ProductModel(
       dryingTime: 4.0,
       sizes: ['1L', '4L', '10L', '20L'],
       usage: 'Interior Walls',
-      description: 'Nerolac Impression HD luxury emulsion contains high-definition pigments for a bright, rich sheen and excellent cleanability.',
+      description:
+          'Nerolac Impression HD luxury emulsion contains high-definition pigments for a bright, rich sheen and excellent cleanability.',
       warranty: 8.0,
       images: ['assets/images/Nerolac/Interior/Impression HD.webp'],
       category: 'Interior Wall',
@@ -682,7 +698,8 @@ ProductModel(
       dryingTime: 3.0,
       sizes: ['1L', '4L', '10L', '20L'],
       usage: 'Interior Walls',
-      description: 'Nerolac Beauty WOW White provides a super bright white matte finish for interior walls at a budget-friendly price.',
+      description:
+          'Nerolac Beauty WOW White provides a super bright white matte finish for interior walls at a budget-friendly price.',
       warranty: 2.0,
       images: ['assets/images/Nerolac/Interior/beauty-smooth-wow-white.webp'],
       category: 'Interior Wall',
@@ -706,7 +723,8 @@ ProductModel(
       dryingTime: 4.0,
       sizes: ['1L', '4L', '10L', '20L'],
       usage: 'Alkali resistant primer and waterproofing',
-      description: 'Nerolac Alkali Resistant Primer is designed to seal masonry walls, offering strong resistance to salt efflorescence and alkali damage.',
+      description:
+          'Nerolac Alkali Resistant Primer is designed to seal masonry walls, offering strong resistance to salt efflorescence and alkali damage.',
       warranty: 3.0,
       images: ['assets/images/Nerolac/Waterproofing/Alkali-primer.webp'],
       category: 'Waterproofing',
@@ -730,7 +748,8 @@ ProductModel(
       dryingTime: 4.0,
       sizes: ['500g', '1kg', '5kg'],
       usage: 'Plaster crack sealing',
-      description: 'Nerolac Crack Filler paste is a fiber-reinforced formulation that seals structural plaster cracks and resists rainfall ingress.',
+      description:
+          'Nerolac Crack Filler paste is a fiber-reinforced formulation that seals structural plaster cracks and resists rainfall ingress.',
       warranty: 2.0,
       images: ['assets/images/Nerolac/Waterproofing/Crack Filler.webp'],
       category: 'Waterproofing',
@@ -754,9 +773,12 @@ ProductModel(
       dryingTime: 4.0,
       sizes: ['5kg', '20kg', '40kg'],
       usage: 'Wall preparation putty with waterproofing',
-      description: 'Nerolac Perma Waterproof Putty is a polymer modified cementitious wall putty that seals surface pores and offers excellent water barrier.',
+      description:
+          'Nerolac Perma Waterproof Putty is a polymer modified cementitious wall putty that seals surface pores and offers excellent water barrier.',
       warranty: 3.0,
-      images: ['assets/images/Nerolac/Waterproofing/Perma Waterproof Putty.webp'],
+      images: [
+        'assets/images/Nerolac/Waterproofing/Perma Waterproof Putty.webp',
+      ],
       category: 'Waterproofing',
       rating: 4.6,
       reviewCount: 30,
@@ -778,7 +800,8 @@ ProductModel(
       dryingTime: 4.0,
       sizes: ['1L', '4L', '10L', '20L'],
       usage: 'Exterior Wall Preparation',
-      description: 'Nerolac Suraksha Primer provides excellent adhesion to the masonry substrate and prepares the exterior walls for subsequent topcoats.',
+      description:
+          'Nerolac Suraksha Primer provides excellent adhesion to the masonry substrate and prepares the exterior walls for subsequent topcoats.',
       warranty: 0.0,
       images: ['assets/images/Nerolac/Suraksha Primer.jpg'],
       category: 'Primer',
@@ -802,7 +825,8 @@ ProductModel(
       dryingTime: 4.0,
       sizes: ['1L', '4L', '10L', '20L'],
       usage: 'Interior Wall Preparation',
-      description: 'Nerolac Economy Interior Primer is a budget-friendly water thinnable primer offering good opacity and adhesion properties.',
+      description:
+          'Nerolac Economy Interior Primer is a budget-friendly water thinnable primer offering good opacity and adhesion properties.',
       warranty: 0.0,
       images: ['assets/images/Nerolac/Economy Interior Primer.jpg'],
       category: 'Primer',
@@ -826,7 +850,8 @@ ProductModel(
       dryingTime: 4.0,
       sizes: ['1kg', '5kg', '20kg', '40kg'],
       usage: 'Wall alignment and puttying',
-      description: 'Nerolac Wallcare Acrylic Cement Putty is formulated to fill plaster cracks and provide a super smooth base undercoat.',
+      description:
+          'Nerolac Wallcare Acrylic Cement Putty is formulated to fill plaster cracks and provide a super smooth base undercoat.',
       warranty: 0.0,
       images: ['assets/images/Nerolac/Cement_Putty.webp'],
       category: 'Wall Care',
@@ -836,6 +861,6 @@ ProductModel(
       createdAt: DateTime.now().subtract(const Duration(days: 16)),
       range: 'Premium',
       speciality: 'Super Smooth Wall Alignment Putty',
-    )
+    ),
   ];
 }
