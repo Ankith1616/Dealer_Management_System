@@ -130,9 +130,9 @@ class _ProductCatalogScreenState extends ConsumerState<ProductCatalogScreen> {
 
                     if (_selectedCoatType != null) {
                       if (_selectedCoatType == 'Base Coat') {
-                        filtered = filtered.where((p) => p.category == 'Primer' || p.category == 'Waterproofing').toList();
+                        filtered = filtered.where((p) => p.category == 'Primer' || p.category == 'Waterproofing' || p.category == 'Wall Care' || p.category == 'General').toList();
                       } else if (_selectedCoatType == 'Top Coat') {
-                        filtered = filtered.where((p) => p.category != 'Primer' && p.category != 'Waterproofing').toList();
+                        filtered = filtered.where((p) => p.category != 'Primer' && p.category != 'Waterproofing' && p.category != 'Wall Care' && p.category != 'General').toList();
                       }
                     }
 

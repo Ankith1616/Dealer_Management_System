@@ -54,5 +54,7 @@ class AppColors {
     'Texture': Color(0xFFD7CCC8), // Soft brown
     'Wood Finish': Color(0xFFFFCCBC), // Soft orange
     'Waterproofing': Color(0xFFBBDEFB), // Blue
+    'Wall Care': Color(0xFFE0F7FA), // Soft cyan/teal
+    'General': Color(0xFFECEFF1), // Soft gray
   };
 }

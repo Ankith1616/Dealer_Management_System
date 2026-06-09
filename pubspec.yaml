@@ -30,6 +30,9 @@ flutter:
   assets:
     - assets/images/
     - assets/images/Asian/
+    - assets/images/Asian/Waterproofing/
+    - assets/images/Asian/Interior/
+    - assets/images/Asian/Exterior/
     - assets/images/Berger/
     - assets/images/Berger/Exterior/
     - assets/images/Berger/Interior/

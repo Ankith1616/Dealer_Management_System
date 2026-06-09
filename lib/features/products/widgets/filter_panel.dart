@@ -43,7 +43,9 @@ class FilterPanel extends StatelessWidget {
       'Distemper',
       'Texture',
       'Wood Finish',
-      'Waterproofing'
+      'Waterproofing',
+      'Wall Care',
+      'General'
     ];
 
     final sortOptions = [

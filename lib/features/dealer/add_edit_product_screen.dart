@@ -38,7 +38,12 @@ class _AddEditProductScreenState extends ConsumerState<AddEditProductScreen> {
     'Exterior Wall',
     'Primer',
     'Enamel',
+    'Distemper',
+    'Texture',
+    'Wood Finish',
     'Waterproofing',
+    'Wall Care',
+    'General',
   ];
 
   @override

@@ -19,6 +19,8 @@ class CategoriesGrid extends StatelessWidget {
       {'name': 'Texture', 'icon': Icons.texture, 'count': 21},
       {'name': 'Wood Finish', 'icon': Icons.chair, 'count': 12},
       {'name': 'Waterproofing', 'icon': Icons.water, 'count': 8},
+      {'name': 'Wall Care', 'icon': Icons.shield, 'count': 2},
+      {'name': 'General', 'icon': Icons.build_outlined, 'count': 1},
     ];
 
     return GridView.builder(
