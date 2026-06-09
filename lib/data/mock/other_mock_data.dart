@@ -18,7 +18,7 @@ class OtherMockData {
       description:
           'Surya Cool Paste is an economical, high-efficiency heat-reflective paste that protects roofs against water ingress and keeps interiors cool.',
       warranty: 3.0,
-      images: ['assets/images/Surya Cool Paste.jpg'],
+      images: ['assets/images/surya_cool_paste.jpg'],
       category: 'Waterproofing',
       rating: 4.3,
       reviewCount: 15,
@@ -68,7 +68,7 @@ class OtherMockData {
       description:
           'Nexon Paints  Texture offers high durability and unique textured finishes for architectural accent walls, designed to enhance modern home decors.',
       warranty: 4.0,
-      images: ['assets/images/Nexon Texture.jpeg'],
+      images: ['assets/images/nexon_texture.jpeg'],
       category: 'Texture',
       rating: 4.4,
       reviewCount: 18,
