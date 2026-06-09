@@ -21,10 +21,8 @@ class ProductImageView extends StatelessWidget {
 
     // Check if it's a local asset path
     if (path.startsWith('assets/')) {
-      // Strip 'assets/' prefix since Image.asset expects relative paths
-      final assetPath = path.replaceFirst('assets/', '');
       return Image.asset(
-        assetPath,
+        path,
         fit: fit,
         errorBuilder: (context, error, stackTrace) => fallback ?? const SizedBox.shrink(),
       );

@@ -97,7 +97,7 @@ class MockData {
     ),
     ProductModel(
       id: 'p_4',
-      name: 'Apcolite Premium Enamel',
+      name: 'Apcolite Premium  Gloss Enamel',
       brand: 'Asian Paints',
       paintType: 'Enamel',
       color: 'Golden Yellow',
