@@ -19,6 +19,8 @@ class ProductModel {
   final int reviewCount;
   final String dealerId;
   final DateTime createdAt;
+  final String range;
+  final String speciality;
 
   ProductModel({
     required this.id,
@@ -41,6 +43,8 @@ class ProductModel {
     required this.reviewCount,
     required this.dealerId,
     required this.createdAt,
+    required this.range,
+    required this.speciality,
   });
 
   Map<String, dynamic> toMap() {
@@ -65,6 +69,8 @@ class ProductModel {
       'reviewCount': reviewCount,
       'dealerId': dealerId,
       'createdAt': createdAt.toIso8601String(),
+      'range': range,
+      'speciality': speciality,
     };
   }
 
@@ -90,6 +96,8 @@ class ProductModel {
       reviewCount: map['reviewCount']?.toInt() ?? 0,
       dealerId: map['dealerId'] ?? '',
       createdAt: map['createdAt'] != null ? DateTime.parse(map['createdAt']) : DateTime.now(),
+      range: map['range'] ?? '',
+      speciality: map['speciality'] ?? '',
     );
   }
 
@@ -114,6 +122,8 @@ class ProductModel {
     int? reviewCount,
     String? dealerId,
     DateTime? createdAt,
+    String? range,
+    String? speciality,
   }) {
     return ProductModel(
       id: id ?? this.id,
@@ -136,6 +146,8 @@ class ProductModel {
       reviewCount: reviewCount ?? this.reviewCount,
       dealerId: dealerId ?? this.dealerId,
       createdAt: createdAt ?? this.createdAt,
+      range: range ?? this.range,
+      speciality: speciality ?? this.speciality,
     );
   }
 }

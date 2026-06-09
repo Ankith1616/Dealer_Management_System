@@ -38,4 +38,8 @@ flutter:
     - assets/images/Berger/Interior/
     - assets/images/Berger/Primers/
     - assets/images/Nerolac/
+    - assets/images/Nerolac/Exterior/
+    - assets/images/Nerolac/Interior/
+    - assets/images/Nerolac/Waterproofing/
     - assets/images/Opus/
+    - assets/images/FIxit/

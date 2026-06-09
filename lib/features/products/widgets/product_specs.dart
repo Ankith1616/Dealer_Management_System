@@ -34,6 +34,8 @@ class ProductSpecs extends StatelessWidget {
               _buildSpecItem(context, Icons.timer, 'Drying Time', '${product.dryingTime} hrs'),
               _buildSpecItem(context, Icons.verified, 'Warranty', '${product.warranty} Years'),
               _buildSpecItem(context, Icons.straighten, 'Sizes', product.sizes.join(', ')),
+              _buildSpecItem(context, Icons.bar_chart, 'Range', product.range),
+              _buildSpecItem(context, Icons.star_border, 'Speciality', product.speciality),
             ],
           ),
         ],

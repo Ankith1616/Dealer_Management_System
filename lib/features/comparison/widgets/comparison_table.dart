@@ -89,6 +89,14 @@ class ComparisonTable extends StatelessWidget {
           _buildRow(context, 'Warranty', 
             products.map((p) => _CellData('${p.warranty} Years', isBest: p.warranty == maxWarranty)).toList()),
             
+          // Range
+          _buildRow(context, 'Range', 
+            products.map((p) => _CellData(p.range)).toList()),
+            
+          // Speciality
+          _buildRow(context, 'Speciality', 
+            products.map((p) => _CellData(p.speciality)).toList()),
+            
           // Sizes
           _buildRow(context, 'Available Sizes', 
             products.map((p) => _CellData(p.sizes.join(', '))).toList()),

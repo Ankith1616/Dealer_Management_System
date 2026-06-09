@@ -31,6 +31,7 @@ class _AddEditProductScreenState extends ConsumerState<AddEditProductScreen> {
   late final TextEditingController _dryingTimeController;
   late final TextEditingController _warrantyController;
   late final TextEditingController _descriptionController;
+  late final TextEditingController _specialityController;
   
   String _selectedCategory = 'Interior Wall';
   final List<String> _categories = [
@@ -44,6 +45,14 @@ class _AddEditProductScreenState extends ConsumerState<AddEditProductScreen> {
     'Waterproofing',
     'Wall Care',
     'General',
+  ];
+
+  String _selectedRange = 'Premium';
+  final List<String> _ranges = [
+    'Economy',
+    'Premium',
+    'Luxury',
+    'Super Luxury',
   ];
 
   @override
@@ -62,8 +71,10 @@ class _AddEditProductScreenState extends ConsumerState<AddEditProductScreen> {
     _dryingTimeController = TextEditingController(text: p != null ? '${p.dryingTime}' : '4');
     _warrantyController = TextEditingController(text: p != null ? '${p.warranty}' : '5');
     _descriptionController = TextEditingController(text: p?.description ?? '');
+    _specialityController = TextEditingController(text: p?.speciality ?? 'High Quality Paint');
     if (p != null) {
       _selectedCategory = p.category;
+      _selectedRange = p.range;
     }
   }
 
@@ -80,6 +91,7 @@ class _AddEditProductScreenState extends ConsumerState<AddEditProductScreen> {
     _dryingTimeController.dispose();
     _warrantyController.dispose();
     _descriptionController.dispose();
+    _specialityController.dispose();
     super.dispose();
   }
 
@@ -108,6 +120,8 @@ class _AddEditProductScreenState extends ConsumerState<AddEditProductScreen> {
         reviewCount: widget.productToEdit?.reviewCount ?? 0,
         dealerId: widget.productToEdit?.dealerId ?? 'dealer_1',
         createdAt: widget.productToEdit?.createdAt ?? DateTime.now(),
+        range: _selectedRange,
+        speciality: _specialityController.text.trim(),
       );
 
       final repo = ref.read(productRepositoryProvider);
@@ -268,6 +282,35 @@ class _AddEditProductScreenState extends ConsumerState<AddEditProductScreen> {
                       child: TextFormField(
                         controller: _finishTypeController,
                         decoration: const InputDecoration(labelText: 'Finish Type (e.g. Soft Sheen/Matte) *'),
+                        validator: (v) => v == null || v.trim().isEmpty ? 'Required' : null,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: AppSizes.p16),
+
+                // Range and Speciality
+                Row(
+                  children: [
+                    Expanded(
+                      child: DropdownButtonFormField<String>(
+                        initialValue: _selectedRange,
+                        decoration: const InputDecoration(labelText: 'Range *'),
+                        items: _ranges.map((r) => DropdownMenuItem(value: r, child: Text(r))).toList(),
+                        onChanged: (val) {
+                          if (val != null) {
+                            setState(() {
+                              _selectedRange = val;
+                            });
+                          }
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: AppSizes.p16),
+                    Expanded(
+                      child: TextFormField(
+                        controller: _specialityController,
+                        decoration: const InputDecoration(labelText: 'Speciality (e.g. Teflon Surface Protector) *'),
                         validator: (v) => v == null || v.trim().isEmpty ? 'Required' : null,
                       ),
                     ),
