@@ -10,7 +10,8 @@ import '../../providers/auth_provider.dart';
 import 'widgets/auth_text_field.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
-  const RegisterScreen({super.key});
+  final String? initialPhone;
+  const RegisterScreen({super.key, this.initialPhone});
 
   @override
   ConsumerState<RegisterScreen> createState() => _RegisterScreenState();
@@ -22,7 +23,15 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _phoneController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  String _selectedRole = 'customer'; // customer or dealer
+  final String _selectedRole = 'customer'; // customer only
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.initialPhone != null) {
+      _phoneController.text = widget.initialPhone!;
+    }
+  }
 
   @override
   void dispose() {
@@ -61,251 +70,180 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final authState = ref.watch(authStateProvider);
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final size = MediaQuery.of(context).size;
-    final isLargeScreen = size.width > 800;
-
-    return Scaffold(
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: isDark
-                ? [const Color(0xFF0F0C20), const Color(0xFF1E1035), const Color(0xFF0A0815)]
-                : [const Color(0xFFECE9E6), const Color(0xFFFFFFFF), const Color(0xFFE9E4F0)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-        ),
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(AppSizes.p24),
-            child: SizedBox(
-              width: isLargeScreen ? 900 : double.infinity,
-              child: Row(
-                children: [
-                  if (isLargeScreen)
-                    Expanded(
-                      flex: 5,
-                      child: Container(
-                        padding: const EdgeInsets.all(AppSizes.p48),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: AppColors.primary.withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(AppSizes.radiusM),
-                              ),
-                              child: const Icon(
-                                Icons.format_paint_outlined,
-                                size: 48,
-                                color: AppColors.primary,
-                              ),
-                            ),
-                            const SizedBox(height: AppSizes.p24),
-                            Text(
-                              'Join ColorCraft Paints',
-                              style: Theme.of(context).textTheme.displayMedium?.copyWith(
-                                    fontWeight: FontWeight.w800,
-                                    color: isDark ? Colors.white : AppColors.textPrimary,
-                                  ),
-                            ),
-                            const SizedBox(height: AppSizes.p16),
-                            Text(
-                              'Experience a painting app designed for both homeowners and dealers. Plan your painting budget, review colors, compare premium brands, or manage your shop effortlessly.',
-                              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                    color: isDark ? Colors.white70 : AppColors.textSecondary,
-                                    height: 1.5,
-                                  ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  Expanded(
-                    flex: 4,
-                    child: Hero(
-                      tag: 'auth_card',
-                      child: GlassCard(
-                        padding: const EdgeInsets.all(AppSizes.p32),
-                        borderRadius: AppSizes.radiusXL,
-                        child: Form(
-                          key: _formKey,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                'Create Account',
-                                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                textAlign: TextAlign.center,
-                              ),
-                              const SizedBox(height: AppSizes.p24),
-                              AuthTextField(
-                                controller: _nameController,
-                                labelText: 'Full Name',
-                                hintText: 'Enter your name',
-                                prefixIcon: Icons.person_outline,
-                                validator: Validators.required,
-                              ),
-                              const SizedBox(height: AppSizes.p16),
-                              AuthTextField(
-                                controller: _phoneController,
-                                labelText: 'Mobile Number',
-                                hintText: 'Enter 10-digit mobile number',
-                                prefixIcon: Icons.phone_android_outlined,
-                                validator: Validators.phone,
-                                keyboardType: TextInputType.phone,
-                              ),
-                              const SizedBox(height: AppSizes.p16),
-                              AuthTextField(
-                                controller: _emailController,
-                                labelText: 'Email Address (Optional)',
-                                hintText: 'Enter your email (optional)',
-                                prefixIcon: Icons.email_outlined,
-                                validator: Validators.optionalEmail,
-                                keyboardType: TextInputType.emailAddress,
-                              ),
-                              const SizedBox(height: AppSizes.p16),
-                              AuthTextField(
-                                controller: _passwordController,
-                                labelText: 'Password',
-                                hintText: 'Create password',
-                                prefixIcon: Icons.lock_outline_rounded,
-                                isPassword: true,
-                                validator: Validators.password,
-                              ),
-                              const SizedBox(height: AppSizes.p20),
-                              
-                              // Interactive Role Selection
-                              Text(
-                                'I want to join as a:',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.bold,
-                                  color: isDark ? Colors.white70 : AppColors.textSecondary,
-                                ),
-                              ),
-                              const SizedBox(height: AppSizes.p8),
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: _buildRoleCard(
-                                      role: 'customer',
-                                      title: 'Customer',
-                                      icon: Icons.face_outlined,
-                                      isSelected: _selectedRole == 'customer',
-                                    ),
-                                  ),
-                                  const SizedBox(width: AppSizes.p12),
-                                  Expanded(
-                                    child: _buildRoleCard(
-                                      role: 'dealer',
-                                      title: 'Dealer / Shop',
-                                      icon: Icons.store_outlined,
-                                      isSelected: _selectedRole == 'dealer',
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              
-                              const SizedBox(height: AppSizes.p24),
-                              GradientButton(
-                                text: 'Sign Up',
-                                isLoading: authState.isLoading,
-                                onPressed: _submit,
-                              ),
-                              const SizedBox(height: AppSizes.p24),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    "Already have an account? ",
-                                    style: TextStyle(
-                                      color: isDark ? Colors.white54 : AppColors.textSecondary,
-                                    ),
-                                  ),
-                                  TextButton(
-                                    onPressed: () => context.go('/login'),
-                                    child: const Text(
-                                      'Login',
-                                      style: TextStyle(fontWeight: FontWeight.bold),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
+  Widget _buildRegisterCard(BuildContext context, AuthState authState, bool isDark) {
+    return GlassCard(
+      padding: const EdgeInsets.all(AppSizes.p32),
+      borderRadius: AppSizes.radiusXL,
+      child: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Create Account',
+              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
                   ),
-                ],
-              ),
+              textAlign: TextAlign.center,
             ),
-          ),
+            const SizedBox(height: AppSizes.p24),
+            AuthTextField(
+              controller: _nameController,
+              labelText: 'Full Name',
+              hintText: 'Enter your name',
+              prefixIcon: Icons.person_outline,
+              validator: Validators.required,
+            ),
+            const SizedBox(height: AppSizes.p16),
+            AuthTextField(
+              controller: _phoneController,
+              labelText: 'Mobile Number',
+              hintText: 'Enter 10-digit mobile number',
+              prefixIcon: Icons.phone_android_outlined,
+              validator: Validators.phone,
+              keyboardType: TextInputType.phone,
+              maxLength: 10,
+            ),
+            const SizedBox(height: AppSizes.p16),
+            AuthTextField(
+              controller: _emailController,
+              labelText: 'Email Address (Optional)',
+              hintText: 'Enter your email (optional)',
+              prefixIcon: Icons.email_outlined,
+              validator: Validators.optionalEmail,
+              keyboardType: TextInputType.emailAddress,
+            ),
+            const SizedBox(height: AppSizes.p16),
+            AuthTextField(
+              controller: _passwordController,
+              labelText: 'Password',
+              hintText: 'Create password',
+              prefixIcon: Icons.lock_outline_rounded,
+              isPassword: true,
+              validator: Validators.password,
+            ),
+            const SizedBox(height: AppSizes.p20),
+            
+            // Only customer registration is allowed online
+            
+            const SizedBox(height: AppSizes.p24),
+            GradientButton(
+              text: 'Sign Up',
+              isLoading: authState.isLoading,
+              onPressed: _submit,
+            ),
+            const SizedBox(height: AppSizes.p24),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  "Already have an account? ",
+                  style: TextStyle(
+                    color: isDark ? Colors.white54 : AppColors.textSecondary,
+                  ),
+                ),
+                TextButton(
+                  onPressed: () => context.go('/login'),
+                  child: const Text(
+                    'Login',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildRoleCard({
-    required String role,
-    required String title,
-    required IconData icon,
-    required bool isSelected,
-  }) {
+  @override
+  Widget build(BuildContext context) {
+    final authState = ref.watch(authStateProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
-    return InkWell(
-      onTap: () {
-        setState(() {
-          _selectedRole = role;
-        });
-      },
-      borderRadius: BorderRadius.circular(AppSizes.radiusM),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 250),
-        padding: const EdgeInsets.symmetric(vertical: AppSizes.p12, horizontal: AppSizes.p8),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? AppColors.primary.withValues(alpha: 0.08)
-              : Colors.transparent,
-          borderRadius: BorderRadius.circular(AppSizes.radiusM),
-          border: Border.all(
-            color: isSelected
-                ? AppColors.primary
-                : (isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.1)),
-            width: isSelected ? 1.8 : 1.0,
-          ),
-        ),
-        child: Column(
-          children: [
-            Icon(
-              icon,
-              size: 24,
-              color: isSelected ? AppColors.primary : (isDark ? Colors.white60 : AppColors.textSecondary),
-            ),
-            const SizedBox(height: AppSizes.p6),
-            Text(
-              title,
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                color: isSelected ? AppColors.primary : (isDark ? Colors.white70 : AppColors.textPrimary),
+
+    return Scaffold(
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final W = constraints.maxWidth;
+          final H = constraints.maxHeight;
+          final isLargeScreen = W > 800;
+
+          if (!isLargeScreen) {
+            return Stack(
+              children: [
+                Positioned.fill(
+                  child: Image.asset(
+                    'assets/images/register_full_bg.png',
+                    fit: BoxFit.cover,
+                    alignment: Alignment.centerLeft,
+                  ),
+                ),
+                Positioned.fill(
+                  child: Container(
+                    color: Colors.black.withValues(alpha: 0.4),
+                  ),
+                ),
+                SafeArea(
+                  child: Center(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.all(24),
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 440),
+                        child: _buildRegisterCard(context, authState, isDark),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            );
+          }
+
+          // Desktop responsive layout calculations
+          final screenR = W / H;
+          const imgR = 1.5; // Aspect ratio of background image
+
+          double cardCenter;
+          double cardWidth;
+
+          if (screenR > imgR) {
+            // Screen is wider than 3:2
+            cardCenter = 0.805 * W;
+            cardWidth = 0.37 * W;
+          } else {
+            // Screen is taller than 3:2
+            cardCenter = 0.45 * H + 0.5 * W;
+            cardWidth = 0.53 * H;
+          }
+
+          // Clamp card width for a balanced aesthetic
+          cardWidth = cardWidth.clamp(400.0, 540.0);
+
+          return Stack(
+            children: [
+              Positioned.fill(
+                child: Image.asset(
+                  'assets/images/register_full_bg.png',
+                  fit: BoxFit.cover,
+                  alignment: Alignment.center,
+                ),
               ),
-            ),
-          ],
-        ),
+              Positioned(
+                left: cardCenter - cardWidth / 2,
+                width: cardWidth,
+                top: 0,
+                bottom: 0,
+                child: Center(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(vertical: 24),
+                    child: _buildRegisterCard(context, authState, isDark),
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }

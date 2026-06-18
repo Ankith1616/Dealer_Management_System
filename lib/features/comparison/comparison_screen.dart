@@ -11,6 +11,7 @@ import '../../providers/comparison_provider.dart';
 import '../../providers/product_provider.dart';
 import 'widgets/comparison_chart.dart';
 import 'widgets/comparison_table.dart';
+import '../../providers/activity_history_provider.dart';
 
 class ComparisonScreen extends ConsumerStatefulWidget {
   const ComparisonScreen({super.key});
@@ -124,6 +125,10 @@ class _ComparisonScreenState extends ConsumerState<ComparisonScreen> {
                         ? () {
                             ref.read(comparisonProvider.notifier).setSelectedProducts(
                                   selectedProducts.map((p) => p.id).toList(),
+                                );
+                            ref.read(activityHistoryProvider.notifier).addActivity(
+                                  'Compared "${selectedProducts[0].name}" vs "${selectedProducts[1].name}"',
+                                  Icons.compare_arrows,
                                 );
                             setState(() {
                               _showComparison = true;

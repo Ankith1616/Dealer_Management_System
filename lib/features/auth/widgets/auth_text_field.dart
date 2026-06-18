@@ -10,6 +10,7 @@ class AuthTextField extends StatefulWidget {
   final bool isPassword;
   final String? Function(String?)? validator;
   final TextInputType keyboardType;
+  final int? maxLength;
 
   const AuthTextField({
     super.key,
@@ -20,6 +21,7 @@ class AuthTextField extends StatefulWidget {
     this.isPassword = false,
     this.validator,
     this.keyboardType = TextInputType.text,
+    this.maxLength,
   });
 
   @override
@@ -38,11 +40,13 @@ class _AuthTextFieldState extends State<AuthTextField> {
       obscureText: widget.isPassword && _obscureText,
       validator: widget.validator,
       keyboardType: widget.keyboardType,
+      maxLength: widget.maxLength,
       style: TextStyle(
         color: isDark ? Colors.white : AppColors.textPrimary,
         fontSize: 16,
       ),
       decoration: InputDecoration(
+        counterText: widget.maxLength != null ? "" : null,
         labelText: widget.labelText,
         hintText: widget.hintText,
         prefixIcon: Icon(widget.prefixIcon, color: AppColors.primary),

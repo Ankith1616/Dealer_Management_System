@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_sizes.dart';
 import '../utils/responsive.dart';
+import '../../providers/review_provider.dart';
 
-class DealerShell extends StatelessWidget {
+class DealerShell extends ConsumerWidget {
   final Widget child;
   final String currentPath;
 
@@ -16,9 +18,10 @@ class DealerShell extends StatelessWidget {
 
   int _getSelectedIndex() {
     if (currentPath == '/dealer') return 0;
-    if (currentPath.startsWith('/dealer/products')) return 1;
+    if (currentPath.startsWith('/dealer/new-launch')) return 1;
     if (currentPath.startsWith('/dealer/reviews')) return 2;
-    if (currentPath.startsWith('/profile') || currentPath.startsWith('/settings')) return 3;
+    if (currentPath.startsWith('/dealer/complaints')) return 3;
+    if (currentPath.startsWith('/dealer/logs')) return 4;
     return 0;
   }
 
@@ -28,22 +31,31 @@ class DealerShell extends StatelessWidget {
         context.go('/dealer');
         break;
       case 1:
-        context.go('/dealer/products');
+        context.go('/dealer/new-launch');
         break;
       case 2:
         context.go('/dealer/reviews');
         break;
       case 3:
-        context.go('/profile');
+        context.go('/dealer/complaints');
+        break;
+      case 4:
+        context.go('/dealer/logs');
         break;
     }
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final selectedIndex = _getSelectedIndex();
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
+    final reviewsAsync = ref.watch(allReviewsProvider);
+    final pendingCount = reviewsAsync.maybeWhen(
+      data: (reviews) => reviews.where((r) => r.isApproved == false).length,
+      orElse: () => 0,
+    );
+
     return Responsive(
       mobile: Scaffold(
         body: child,
@@ -62,26 +74,41 @@ class DealerShell extends StatelessWidget {
             onDestinationSelected: (index) => _onItemTapped(context, index),
             backgroundColor: isDark ? const Color(0xFF161426) : Colors.white,
             indicatorColor: AppColors.accent.withValues(alpha: 0.12),
-            destinations: const [
-              NavigationDestination(
+            destinations: [
+              const NavigationDestination(
                 icon: Icon(Icons.dashboard_outlined),
                 selectedIcon: Icon(Icons.dashboard, color: AppColors.accent),
                 label: 'Dashboard',
               ),
-              NavigationDestination(
-                icon: Icon(Icons.format_paint_outlined),
-                selectedIcon: Icon(Icons.format_paint, color: AppColors.accent),
-                label: 'Paints',
+              const NavigationDestination(
+                icon: Icon(Icons.add_to_photos_outlined),
+                selectedIcon: Icon(Icons.add_to_photos, color: AppColors.accent),
+                label: 'New Launch',
               ),
               NavigationDestination(
-                icon: Icon(Icons.rate_review_outlined),
-                selectedIcon: Icon(Icons.rate_review, color: AppColors.accent),
-                label: 'Reviews',
+                icon: pendingCount > 0
+                    ? Badge.count(
+                        count: pendingCount,
+                        child: const Icon(Icons.chat_bubble_outline_rounded),
+                      )
+                    : const Icon(Icons.chat_bubble_outline_rounded),
+                selectedIcon: pendingCount > 0
+                    ? Badge.count(
+                        count: pendingCount,
+                        child: const Icon(Icons.chat_bubble, color: AppColors.accent),
+                      )
+                    : const Icon(Icons.chat_bubble, color: AppColors.accent),
+                label: 'Feedback',
               ),
-              NavigationDestination(
-                icon: Icon(Icons.person_outline),
-                selectedIcon: Icon(Icons.person, color: AppColors.accent),
-                label: 'Profile',
+              const NavigationDestination(
+                icon: Icon(Icons.support_agent_outlined),
+                selectedIcon: Icon(Icons.support_agent, color: AppColors.accent),
+                label: 'Complaints',
+              ),
+              const NavigationDestination(
+                icon: Icon(Icons.history_outlined),
+                selectedIcon: Icon(Icons.history, color: AppColors.accent),
+                label: 'Logs',
               ),
             ],
           ),
@@ -100,7 +127,7 @@ class DealerShell extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(vertical: AppSizes.p24),
                 child: Column(
                   children: [
-                    Icon(Icons.store_rounded, color: AppColors.accent, size: 36),
+                    const Icon(Icons.store_rounded, color: AppColors.accent, size: 36),
                     const SizedBox(height: 8),
                     const Text(
                       'Store Admin',
@@ -113,26 +140,41 @@ class DealerShell extends StatelessWidget {
                   ],
                 ),
               ),
-              destinations: const [
-                NavigationRailDestination(
+              destinations: [
+                const NavigationRailDestination(
                   icon: Icon(Icons.dashboard_outlined),
                   selectedIcon: Icon(Icons.dashboard, color: AppColors.accent),
                   label: Text('Dashboard'),
                 ),
-                NavigationRailDestination(
-                  icon: Icon(Icons.format_paint_outlined),
-                  selectedIcon: Icon(Icons.format_paint, color: AppColors.accent),
-                  label: Text('Paints'),
+                const NavigationRailDestination(
+                  icon: Icon(Icons.add_to_photos_outlined),
+                  selectedIcon: Icon(Icons.add_to_photos, color: AppColors.accent),
+                  label: Text('New Launch'),
                 ),
                 NavigationRailDestination(
-                  icon: Icon(Icons.rate_review_outlined),
-                  selectedIcon: Icon(Icons.rate_review, color: AppColors.accent),
-                  label: Text('Reviews'),
+                  icon: pendingCount > 0
+                      ? Badge.count(
+                          count: pendingCount,
+                          child: const Icon(Icons.chat_bubble_outline_rounded),
+                        )
+                      : const Icon(Icons.chat_bubble_outline_rounded),
+                  selectedIcon: pendingCount > 0
+                      ? Badge.count(
+                          count: pendingCount,
+                          child: const Icon(Icons.chat_bubble, color: AppColors.accent),
+                        )
+                      : const Icon(Icons.chat_bubble, color: AppColors.accent),
+                  label: const Text('Feedback'),
                 ),
-                NavigationRailDestination(
-                  icon: Icon(Icons.person_outline),
-                  selectedIcon: Icon(Icons.person, color: AppColors.accent),
-                  label: Text('Profile'),
+                const NavigationRailDestination(
+                  icon: Icon(Icons.support_agent_outlined),
+                  selectedIcon: Icon(Icons.support_agent, color: AppColors.accent),
+                  label: Text('Complaints'),
+                ),
+                const NavigationRailDestination(
+                  icon: Icon(Icons.history_outlined),
+                  selectedIcon: Icon(Icons.history, color: AppColors.accent),
+                  label: Text('Logs'),
                 ),
               ],
             ),

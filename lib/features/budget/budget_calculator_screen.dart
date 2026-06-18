@@ -6,6 +6,7 @@ import '../../providers/budget_provider.dart';
 import 'widgets/room_input_card.dart';
 import 'widgets/paint_selector.dart';
 import 'widgets/budget_summary.dart';
+import '../../providers/activity_history_provider.dart';
 
 class BudgetCalculatorScreen extends ConsumerWidget {
   const BudgetCalculatorScreen({super.key});
@@ -73,7 +74,13 @@ class BudgetCalculatorScreen extends ConsumerWidget {
             const SizedBox(height: AppSizes.p16),
             PaintSelector(
               selectedProduct: budgetState.selectedProduct,
-              onSelect: (product) => notifier.setProduct(product),
+              onSelect: (product) {
+                notifier.setProduct(product);
+                ref.read(activityHistoryProvider.notifier).addActivity(
+                  'Estimated Paint Budget for "${product.name}"',
+                  Icons.calculate_outlined,
+                );
+              },
             ),
 
             const SizedBox(height: AppSizes.p32),

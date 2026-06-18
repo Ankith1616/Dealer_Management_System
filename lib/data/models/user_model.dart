@@ -6,6 +6,7 @@ class UserModel {
   final String role; // 'dealer' or 'customer'
   final String photoUrl;
   final DateTime createdAt;
+  final String address;
 
   UserModel({
     required this.uid,
@@ -15,6 +16,7 @@ class UserModel {
     required this.role,
     required this.photoUrl,
     required this.createdAt,
+    this.address = '',
   });
 
   Map<String, dynamic> toMap() {
@@ -26,6 +28,7 @@ class UserModel {
       'role': role,
       'photoUrl': photoUrl,
       'createdAt': createdAt.toIso8601String(),
+      'address': address,
     };
   }
 
@@ -38,6 +41,7 @@ class UserModel {
       role: map['role'] ?? 'customer',
       photoUrl: map['photoUrl'] ?? '',
       createdAt: map['createdAt'] != null ? DateTime.parse(map['createdAt']) : DateTime.now(),
+      address: map['address'] ?? '',
     );
   }
 
@@ -49,6 +53,7 @@ class UserModel {
     String? role,
     String? photoUrl,
     DateTime? createdAt,
+    String? address,
   }) {
     return UserModel(
       uid: uid ?? this.uid,
@@ -58,6 +63,7 @@ class UserModel {
       role: role ?? this.role,
       photoUrl: photoUrl ?? this.photoUrl,
       createdAt: createdAt ?? this.createdAt,
+      address: address ?? this.address,
     );
   }
 }

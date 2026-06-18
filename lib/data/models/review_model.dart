@@ -24,6 +24,8 @@ class ReviewModel {
   final double? interiorRating;
   final String? discoverySource;
   final String? otherNotes;
+  final String? userType;
+  final bool? isApproved;
 
   ReviewModel({
     required this.id,
@@ -50,6 +52,8 @@ class ReviewModel {
     this.interiorRating,
     this.discoverySource,
     this.otherNotes,
+    this.userType,
+    this.isApproved = false,
   });
 
   Map<String, dynamic> toMap() {
@@ -78,6 +82,8 @@ class ReviewModel {
       'interiorRating': interiorRating,
       'discoverySource': discoverySource,
       'otherNotes': otherNotes,
+      'userType': userType,
+      'isApproved': isApproved,
     };
   }
 
@@ -107,6 +113,8 @@ class ReviewModel {
       interiorRating: map['interiorRating'] != null ? (map['interiorRating'] as num).toDouble() : null,
       discoverySource: map['discoverySource'],
       otherNotes: map['otherNotes'],
+      userType: map['userType'],
+      isApproved: map['isApproved'] ?? false,
     );
   }
 
@@ -135,6 +143,8 @@ class ReviewModel {
     double? interiorRating,
     String? discoverySource,
     String? otherNotes,
+    String? userType,
+    bool? isApproved,
   }) {
     return ReviewModel(
       id: id ?? this.id,
@@ -161,6 +171,8 @@ class ReviewModel {
       interiorRating: interiorRating ?? this.interiorRating,
       discoverySource: discoverySource ?? this.discoverySource,
       otherNotes: otherNotes ?? this.otherNotes,
+      userType: userType ?? this.userType,
+      isApproved: isApproved ?? this.isApproved,
     );
   }
 }

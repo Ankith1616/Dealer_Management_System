@@ -40,9 +40,20 @@ class ReviewCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      review.userName,
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            review.userName,
+                            style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        if (review.userType != null) ...[
+                          const SizedBox(width: AppSizes.p8),
+                          _buildUserTypeBadge(context, review.userType!),
+                        ],
+                      ],
                     ),
                     Text(
                       Helpers.formatDate(review.createdAt),
@@ -126,6 +137,50 @@ class ReviewCard extends StatelessWidget {
               ),
             ),
           ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildUserTypeBadge(BuildContext context, String userType) {
+    Color badgeColor;
+    String label;
+    IconData icon;
+    if (userType == 'customer') {
+      badgeColor = Colors.teal;
+      label = 'Customer';
+      icon = Icons.home_outlined;
+    } else if (userType == 'contractor') {
+      badgeColor = AppColors.secondary;
+      label = 'Contractor';
+      icon = Icons.handyman_outlined;
+    } else {
+      badgeColor = Colors.purple;
+      label = 'Wholesale';
+      icon = Icons.storefront_outlined;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: badgeColor.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(AppSizes.radiusS),
+        border: Border.all(color: badgeColor.withValues(alpha: 0.2), width: 0.5),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 10, color: badgeColor),
+          const SizedBox(width: 3),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 9,
+              color: badgeColor,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 0.3,
+            ),
+          ),
         ],
       ),
     );

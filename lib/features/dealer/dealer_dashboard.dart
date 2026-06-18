@@ -7,18 +7,34 @@ import '../../core/widgets/glass_card.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/product_provider.dart';
 import '../../providers/review_provider.dart';
+import '../../data/repositories/log_repository.dart';
 import 'widgets/stats_card.dart';
+import '../../core/utils/helpers.dart';
 
-class DealerDashboard extends ConsumerWidget {
+class DealerDashboard extends ConsumerStatefulWidget {
   const DealerDashboard({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<DealerDashboard> createState() => _DealerDashboardState();
+}
+
+class _DealerDashboardState extends ConsumerState<DealerDashboard> {
+  bool _isVisitLogged = false;
+
+  @override
+  Widget build(BuildContext context) {
     final user = ref.watch(currentUserProvider);
     final productsAsync = ref.watch(allProductsProvider);
     final reviewsAsync = ref.watch(allReviewsProvider);
     final size = MediaQuery.of(context).size;
     final isLargeScreen = size.width > 900;
+
+    if (user != null && !_isVisitLogged) {
+      _isVisitLogged = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ref.read(logRepositoryProvider).logVisit(user);
+      });
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -32,8 +48,9 @@ class DealerDashboard extends ConsumerWidget {
           IconButton(
             icon: CircleAvatar(
               radius: 16,
-              backgroundImage: NetworkImage(
-                user?.photoUrl ?? 'https://i.pravatar.cc/150?u=dealer',
+              backgroundImage: Helpers.getAvatarImageProvider(
+                user?.photoUrl ?? '',
+                'dealer',
               ),
             ),
             onPressed: () => context.push('/profile'),
@@ -147,6 +164,112 @@ class DealerDashboard extends ConsumerWidget {
                   ),
                   loading: () => const _LoadingStatsGrid(),
                   error: (e, s) => Center(child: Text('Error loading products: $e')),
+                ),
+
+                const SizedBox(height: AppSizes.p24),
+
+                // Pending Moderation Approvals Section
+                reviewsAsync.when(
+                  data: (reviews) {
+                    final pendingApproval = reviews.where((r) => r.isApproved == false).toList();
+                    if (pendingApproval.isEmpty) return const SizedBox.shrink();
+
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            const Icon(Icons.notifications_active_outlined, color: AppColors.secondary, size: 22),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Pending Feedback Approvals (${pendingApproval.length})',
+                              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.secondary),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: AppSizes.p12),
+                        Container(
+                          padding: const EdgeInsets.all(AppSizes.p16),
+                          decoration: BoxDecoration(
+                            color: AppColors.secondary.withValues(alpha: 0.05),
+                            borderRadius: BorderRadius.circular(AppSizes.radiusL),
+                            border: Border.all(color: AppColors.secondary.withValues(alpha: 0.2)),
+                          ),
+                          child: ListView.separated(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemCount: pendingApproval.take(2).length,
+                            separatorBuilder: (context, index) => const Divider(height: 24),
+                            itemBuilder: (context, index) {
+                              final r = pendingApproval[index];
+                              return Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          'Product: ${r.productName}',
+                                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        'By ${r.userName}',
+                                        style: const TextStyle(fontSize: 12, color: Colors.grey),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    '"${r.title}" - ${r.description}',
+                                    style: const TextStyle(fontSize: 13, fontStyle: FontStyle.italic),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.end,
+                                    children: [
+                                      TextButton.icon(
+                                        onPressed: () async {
+                                          await ref.read(reviewRepositoryProvider).approveReview(r.id, false);
+                                          ref.invalidate(allReviewsProvider);
+                                        },
+                                        icon: const Icon(Icons.close, size: 14, color: AppColors.error),
+                                        label: const Text('Reject', style: TextStyle(color: AppColors.error, fontSize: 12)),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      ElevatedButton.icon(
+                                        onPressed: () async {
+                                          await ref.read(reviewRepositoryProvider).approveReview(r.id, true);
+                                          ref.invalidate(allReviewsProvider);
+                                        },
+                                        icon: const Icon(Icons.check, size: 14, color: Colors.white),
+                                        label: const Text('Approve', style: TextStyle(fontSize: 12)),
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: AppColors.success,
+                                          foregroundColor: Colors.white,
+                                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                          minimumSize: const Size(60, 30),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              );
+                            },
+                          ),
+                        ),
+                        const SizedBox(height: AppSizes.p24),
+                      ],
+                    );
+                  },
+                  loading: () => const SizedBox.shrink(),
+                  error: (e, s) => const SizedBox.shrink(),
                 ),
 
                 const SizedBox(height: AppSizes.p24),

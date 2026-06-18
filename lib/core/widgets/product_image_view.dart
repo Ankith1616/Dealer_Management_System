@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'dart:convert';
+
 class ProductImageView extends StatelessWidget {
   final String? imagePath;
   final BoxFit fit;
@@ -17,6 +19,21 @@ class ProductImageView extends StatelessWidget {
     final path = imagePath;
     if (path == null || path.isEmpty) {
       return fallback ?? const SizedBox.shrink();
+    }
+
+    // Check if it's base64 encoded data URI
+    if (path.startsWith('data:image/') && path.contains(';base64,')) {
+      try {
+        final base64Str = path.split(';base64,').last;
+        final bytes = base64Decode(base64Str);
+        return Image.memory(
+          bytes,
+          fit: fit,
+          errorBuilder: (context, error, stackTrace) => fallback ?? const SizedBox.shrink(),
+        );
+      } catch (e) {
+        return fallback ?? const SizedBox.shrink();
+      }
     }
 
     // Check if it's a local asset path

@@ -1,3 +1,6 @@
+import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 class Helpers {
@@ -16,4 +19,22 @@ class Helpers {
     if (text.length <= maxLength) return text;
     return '${text.substring(0, maxLength)}...';
   }
+
+  static ImageProvider getAvatarImageProvider(String photoUrl, String fallbackSeed) {
+    if (photoUrl.isEmpty) {
+      return NetworkImage('https://i.pravatar.cc/150?u=${fallbackSeed.hashCode}');
+    }
+    if (photoUrl.startsWith('http') || photoUrl.startsWith('blob:') || photoUrl.startsWith('data:')) {
+      return NetworkImage(photoUrl);
+    }
+    try {
+      if (!kIsWeb) {
+        return FileImage(File(photoUrl));
+      }
+    } catch (_) {
+      // Fallback
+    }
+    return NetworkImage(photoUrl);
+  }
 }
+

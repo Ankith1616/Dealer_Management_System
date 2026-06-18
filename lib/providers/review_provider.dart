@@ -9,9 +9,15 @@ final allReviewsProvider = FutureProvider<List<ReviewModel>>((ref) async {
   return repo.getAllReviews();
 });
 
+final approvedReviewsProvider = FutureProvider<List<ReviewModel>>((ref) async {
+  final allReviews = await ref.watch(allReviewsProvider.future);
+  return allReviews.where((r) => r.isApproved ?? false).toList();
+});
+
 final reviewsForProductProvider = FutureProvider.family<List<ReviewModel>, String>((ref, productId) async {
   final repo = ref.watch(reviewRepositoryProvider);
-  return repo.getReviewsForProduct(productId);
+  final reviews = await repo.getReviewsForProduct(productId);
+  return reviews.where((r) => r.isApproved ?? false).toList();
 });
 
 final userReviewsProvider = FutureProvider.family<List<ReviewModel>, String>((ref, userId) async {

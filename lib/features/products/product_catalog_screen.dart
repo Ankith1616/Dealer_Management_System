@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/constants/app_sizes.dart';
@@ -8,6 +9,7 @@ import '../../providers/product_provider.dart';
 import 'widgets/product_card.dart';
 import 'widgets/filter_panel.dart';
 import '../comparison/widgets/comparison_tray.dart';
+import '../../providers/activity_history_provider.dart';
 
 class ProductCatalogScreen extends ConsumerStatefulWidget {
   final String? categoryFilter;
@@ -25,11 +27,18 @@ class _ProductCatalogScreenState extends ConsumerState<ProductCatalogScreen> {
   String? _selectedCoatType;
   String? _selectedEnvironment;
   String? _selectedPriceRange;
+  Timer? _searchLogTimer;
 
   @override
   void initState() {
     super.initState();
     _selectedCategory = widget.categoryFilter;
+  }
+
+  @override
+  void dispose() {
+    _searchLogTimer?.cancel();
+    super.dispose();
   }
 
   @override
@@ -75,6 +84,17 @@ class _ProductCatalogScreenState extends ConsumerState<ProductCatalogScreen> {
                     setState(() {
                       _searchQuery = val;
                     });
+                    _searchLogTimer?.cancel();
+                    if (val.trim().isNotEmpty) {
+                      _searchLogTimer = Timer(const Duration(milliseconds: 1500), () {
+                        if (mounted) {
+                          ref.read(activityHistoryProvider.notifier).addActivity(
+                            'Searched "${val.trim()}"',
+                            Icons.search,
+                          );
+                        }
+                      });
+                    }
                   },
                   decoration: const InputDecoration(
                     hintText: 'Search products...',

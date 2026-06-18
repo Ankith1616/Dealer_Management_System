@@ -92,7 +92,7 @@ class SettingsScreen extends ConsumerWidget {
                 const SizedBox(height: AppSizes.p24),
                 
                 const Text(
-                  'Store Configuration (Mock)',
+                  'Store Configuration (Live)',
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: AppSizes.p12),
@@ -109,22 +109,18 @@ class SettingsScreen extends ConsumerWidget {
                   child: Column(
                     children: [
                       SwitchListTile(
-                        value: true,
-                        onChanged: (val) {},
+                        value: false,
+                        onChanged: null,
                         title: const Text('Use Mock DB'),
-                        subtitle: const Text('Simulate local database repositories'),
-                        secondary: const Icon(Icons.storage_outlined, color: AppColors.primary),
+                        subtitle: const Text('Local simulation database is inactive'),
+                        secondary: const Icon(Icons.storage_outlined, color: Colors.grey),
                       ),
                       const Divider(height: 1),
                       SwitchListTile(
-                        value: false,
-                        onChanged: (val) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Firebase integration requires configuration. See implementation_plan.md')),
-                          );
-                        },
+                        value: true,
+                        onChanged: null,
                         title: const Text('Live Firebase Synced'),
-                        subtitle: const Text('Sync paint catalog and reviews with Firestore'),
+                        subtitle: const Text('Connected live to Firestore (project: dms-vt)'),
                         secondary: const Icon(Icons.cloud_queue_rounded, color: AppColors.primary),
                       ),
                     ],

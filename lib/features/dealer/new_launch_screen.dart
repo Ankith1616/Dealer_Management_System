@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_sizes.dart';
@@ -12,30 +11,29 @@ import '../../core/widgets/product_image_view.dart';
 import '../../providers/product_provider.dart';
 import '../../data/models/product_model.dart';
 
-class AddEditProductScreen extends ConsumerStatefulWidget {
-  final ProductModel? productToEdit;
-  const AddEditProductScreen({super.key, this.productToEdit});
+class NewLaunchScreen extends ConsumerStatefulWidget {
+  const NewLaunchScreen({super.key});
 
   @override
-  ConsumerState<AddEditProductScreen> createState() => _AddEditProductScreenState();
+  ConsumerState<NewLaunchScreen> createState() => _NewLaunchScreenState();
 }
 
-class _AddEditProductScreenState extends ConsumerState<AddEditProductScreen> {
+class _NewLaunchScreenState extends ConsumerState<NewLaunchScreen> {
   final _formKey = GlobalKey<FormState>();
   
-  late final TextEditingController _nameController;
-  late final TextEditingController _brandController;
-  late final TextEditingController _paintTypeController;
-  late final TextEditingController _colorController;
-  late final TextEditingController _hexColorController;
-  late final TextEditingController _finishTypeController;
-  late final TextEditingController _priceController;
-  late final TextEditingController _coverageController;
-  late final TextEditingController _dryingTimeController;
-  late final TextEditingController _warrantyController;
-  late final TextEditingController _descriptionController;
-  late final TextEditingController _specialityController;
-  late final TextEditingController _imageUrlController;
+  final _nameController = TextEditingController();
+  final _brandController = TextEditingController(text: 'ColorCraft');
+  final _paintTypeController = TextEditingController(text: 'Emulsion');
+  final _colorController = TextEditingController(text: 'Ivory Cream');
+  final _hexController = TextEditingController(text: '#FFFFF0');
+  final _finishTypeController = TextEditingController(text: 'Matte');
+  final _priceController = TextEditingController(text: '350');
+  final _coverageController = TextEditingController(text: '120');
+  final _dryingTimeController = TextEditingController(text: '4');
+  final _warrantyController = TextEditingController(text: '5');
+  final _descriptionController = TextEditingController();
+  final _specialityController = TextEditingController(text: 'Dirt Resistant, Washable');
+  final _imageUrlController = TextEditingController(text: 'https://picsum.photos/400/300?random=9');
   
   String _selectedCategory = 'Interior Wall';
   final List<String> _categories = [
@@ -59,31 +57,7 @@ class _AddEditProductScreenState extends ConsumerState<AddEditProductScreen> {
     'Super Luxury',
   ];
 
-  @override
-  void initState() {
-    super.initState();
-    final p = widget.productToEdit;
-    
-    _nameController = TextEditingController(text: p?.name ?? '');
-    _brandController = TextEditingController(text: p?.brand ?? 'ColorCraft');
-    _paintTypeController = TextEditingController(text: p?.paintType ?? 'Emulsion');
-    _colorController = TextEditingController(text: p?.color ?? 'Premium White');
-    _hexColorController = TextEditingController(text: p?.hexColor ?? '#FFFFFF');
-    _finishTypeController = TextEditingController(text: p?.finishType ?? 'Matte');
-    _priceController = TextEditingController(text: p != null ? (p.price % 1 == 0 ? '${p.price.toInt()}' : '${p.price}') : '0');
-    _coverageController = TextEditingController(text: p != null ? '${p.coverage}' : '120');
-    _dryingTimeController = TextEditingController(text: p != null ? '${p.dryingTime}' : '4');
-    _warrantyController = TextEditingController(text: p != null ? '${p.warranty}' : '5');
-    _descriptionController = TextEditingController(text: p?.description ?? '');
-    _specialityController = TextEditingController(text: p?.speciality ?? 'High Quality Paint');
-    _imageUrlController = TextEditingController(
-      text: p != null && p.images.isNotEmpty ? p.images.first : 'https://picsum.photos/400/300?random=9',
-    );
-    if (p != null) {
-      _selectedCategory = p.category;
-      _selectedRange = p.range;
-    }
-  }
+  bool _isSubmitting = false;
 
   @override
   void dispose() {
@@ -91,7 +65,7 @@ class _AddEditProductScreenState extends ConsumerState<AddEditProductScreen> {
     _brandController.dispose();
     _paintTypeController.dispose();
     _colorController.dispose();
-    _hexColorController.dispose();
+    _hexController.dispose();
     _finishTypeController.dispose();
     _priceController.dispose();
     _coverageController.dispose();
@@ -101,6 +75,26 @@ class _AddEditProductScreenState extends ConsumerState<AddEditProductScreen> {
     _specialityController.dispose();
     _imageUrlController.dispose();
     super.dispose();
+  }
+
+  void _clearForm() {
+    _nameController.clear();
+    _descriptionController.clear();
+    _brandController.text = 'ColorCraft';
+    _paintTypeController.text = 'Emulsion';
+    _colorController.text = 'Ivory Cream';
+    _hexController.text = '#FFFFF0';
+    _finishTypeController.text = 'Matte';
+    _priceController.text = '350';
+    _coverageController.text = '120';
+    _dryingTimeController.text = '4';
+    _warrantyController.text = '5';
+    _specialityController.text = 'Dirt Resistant, Washable';
+    _imageUrlController.text = 'https://picsum.photos/400/300?random=9';
+    setState(() {
+      _selectedCategory = 'Interior Wall';
+      _selectedRange = 'Premium';
+    });
   }
 
   Future<void> _pickImage() async {
@@ -132,65 +126,64 @@ class _AddEditProductScreenState extends ConsumerState<AddEditProductScreen> {
     }
   }
 
-  Future<void> _save() async {
+  Future<void> _submit() async {
     if (_formKey.currentState!.validate()) {
-      final isEdit = widget.productToEdit != null;
-      
+      setState(() {
+        _isSubmitting = true;
+      });
+
       final product = ProductModel(
-        id: isEdit ? widget.productToEdit!.id : const Uuid().v4(),
+        id: const Uuid().v4(),
         name: _nameController.text.trim(),
         brand: _brandController.text.trim(),
         paintType: _paintTypeController.text.trim(),
         color: _colorController.text.trim(),
-        hexColor: _hexColorController.text.trim(),
+        hexColor: _hexController.text.trim(),
         finishType: _finishTypeController.text.trim(),
-        price: double.parse(_priceController.text),
-        coverage: double.parse(_coverageController.text),
-        dryingTime: double.parse(_dryingTimeController.text),
-        sizes: widget.productToEdit?.sizes ?? ['1L', '4L', '10L', '20L'],
+        price: double.tryParse(_priceController.text) ?? 0.0,
+        coverage: double.tryParse(_coverageController.text) ?? 120.0,
+        dryingTime: double.tryParse(_dryingTimeController.text) ?? 4.0,
+        sizes: const ['1L', '4L', '10L', '20L'],
         usage: _selectedCategory.contains('Interior') ? 'Interior Walls' : 'Exterior Walls',
         description: _descriptionController.text.trim(),
-        warranty: double.parse(_warrantyController.text),
-        images: [_imageUrlController.text.trim()],
+        warranty: double.tryParse(_warrantyController.text) ?? 5.0,
+        images: [_imageUrlController.text.trim().isNotEmpty ? _imageUrlController.text.trim() : 'https://picsum.photos/400/300?random=9'],
         category: _selectedCategory,
-        rating: widget.productToEdit?.rating ?? 5.0,
-        reviewCount: widget.productToEdit?.reviewCount ?? 0,
-        dealerId: widget.productToEdit?.dealerId ?? 'dealer_1',
-        createdAt: widget.productToEdit?.createdAt ?? DateTime.now(),
+        rating: 5.0,
+        reviewCount: 0,
+        dealerId: 'dealer_1',
+        createdAt: DateTime.now(),
         range: _selectedRange,
         speciality: _specialityController.text.trim(),
       );
 
       final repo = ref.read(productRepositoryProvider);
-      
-      if (isEdit) {
-        await repo.updateProduct(product);
-      } else {
-        await repo.addProduct(product);
-      }
+      await repo.addProduct(product);
       
       ref.invalidate(allProductsProvider);
-      
+
+      setState(() {
+        _isSubmitting = false;
+      });
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(isEdit ? 'Paint updated successfully!' : 'Paint added successfully!'),
+          const SnackBar(
+            content: Text('New launch product is now live on the website!'),
             backgroundColor: AppColors.success,
           ),
         );
-        context.pop();
+        _clearForm();
       }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final isEdit = widget.productToEdit != null;
-
     return Scaffold(
-      appBar: CustomAppBar(
-        title: isEdit ? 'Edit Paint Product' : 'Add New Paint',
-        showBackButton: true,
+      appBar: const CustomAppBar(
+        title: 'New Launch',
+        showBackButton: false,
       ),
       body: Center(
         child: Container(
@@ -200,15 +193,29 @@ class _AddEditProductScreenState extends ConsumerState<AddEditProductScreen> {
             child: ListView(
               padding: const EdgeInsets.all(AppSizes.p20),
               children: [
+                Text(
+                  'Launch New Paint Product',
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 4),
+                const Text(
+                  'Add a new paint product here to make it instantly visible and searchable in the customer portal.',
+                  style: TextStyle(color: Colors.grey, fontSize: 13),
+                ),
+                const Divider(height: AppSizes.p32),
+
                 // Product Name
                 TextFormField(
                   controller: _nameController,
-                  decoration: const InputDecoration(labelText: 'Paint Product Name *', hintText: 'e.g. Royale Luxury Emulsion'),
-                  validator: (v) => v == null || v.trim().isEmpty ? 'Required' : null,
+                  decoration: const InputDecoration(
+                    labelText: 'Paint Product Name *',
+                    hintText: 'e.g. Royale Luxury Emulsion',
+                  ),
+                  validator: (v) => v == null || v.trim().isEmpty ? 'Product name is required' : null,
                 ),
                 const SizedBox(height: AppSizes.p16),
                 
-                // Brand and Category Row
+                // Brand and Category
                 Row(
                   children: [
                     Expanded(
@@ -237,15 +244,15 @@ class _AddEditProductScreenState extends ConsumerState<AddEditProductScreen> {
                     Expanded(
                       child: TextFormField(
                         controller: _colorController,
-                        decoration: const InputDecoration(labelText: 'Color Name *', hintText: 'e.g. Cobalt Blue'),
+                        decoration: const InputDecoration(labelText: 'Color Name *', hintText: 'e.g. Ivory White'),
                         validator: (v) => v == null || v.trim().isEmpty ? 'Required' : null,
                       ),
                     ),
                     const SizedBox(width: AppSizes.p16),
                     Expanded(
                       child: TextFormField(
-                        controller: _hexColorController,
-                        decoration: const InputDecoration(labelText: 'Color Hex Code *', hintText: 'e.g. #1E88E5'),
+                        controller: _hexController,
+                        decoration: const InputDecoration(labelText: 'Hex Code *', hintText: 'e.g. #FFFFFF'),
                         validator: (v) {
                           if (v == null || v.trim().isEmpty) return 'Required';
                           if (!v.startsWith('#') || v.length != 7) return 'Format: #RRGGBB';
@@ -265,7 +272,7 @@ class _AddEditProductScreenState extends ConsumerState<AddEditProductScreen> {
                         controller: _priceController,
                         keyboardType: TextInputType.number,
                         decoration: const InputDecoration(labelText: 'Price (₹/Liter) *', hintText: 'e.g. 450'),
-                        validator: (v) => v == null || int.tryParse(v) == null ? 'Enter valid number' : null,
+                        validator: (v) => v == null || int.tryParse(v) == null ? 'Enter valid price' : null,
                       ),
                     ),
                     const SizedBox(width: AppSizes.p16),
@@ -289,7 +296,7 @@ class _AddEditProductScreenState extends ConsumerState<AddEditProductScreen> {
                         controller: _dryingTimeController,
                         keyboardType: TextInputType.number,
                         decoration: const InputDecoration(labelText: 'Drying Time (hours) *'),
-                        validator: (v) => v == null || int.tryParse(v) == null ? 'Enter valid number' : null,
+                        validator: (v) => v == null || int.tryParse(v) == null ? 'Enter valid drying time' : null,
                       ),
                     ),
                     const SizedBox(width: AppSizes.p16),
@@ -298,7 +305,7 @@ class _AddEditProductScreenState extends ConsumerState<AddEditProductScreen> {
                         controller: _warrantyController,
                         keyboardType: TextInputType.number,
                         decoration: const InputDecoration(labelText: 'Warranty (years) *'),
-                        validator: (v) => v == null || int.tryParse(v) == null ? 'Enter valid number' : null,
+                        validator: (v) => v == null || int.tryParse(v) == null ? 'Enter valid warranty' : null,
                       ),
                     ),
                   ],
@@ -310,7 +317,7 @@ class _AddEditProductScreenState extends ConsumerState<AddEditProductScreen> {
                     Expanded(
                       child: TextFormField(
                         controller: _paintTypeController,
-                        decoration: const InputDecoration(labelText: 'Paint Type (e.g. Emulsion/Enamel) *'),
+                        decoration: const InputDecoration(labelText: 'Paint Type *', hintText: 'e.g. Emulsion'),
                         validator: (v) => v == null || v.trim().isEmpty ? 'Required' : null,
                       ),
                     ),
@@ -318,7 +325,7 @@ class _AddEditProductScreenState extends ConsumerState<AddEditProductScreen> {
                     Expanded(
                       child: TextFormField(
                         controller: _finishTypeController,
-                        decoration: const InputDecoration(labelText: 'Finish Type (e.g. Soft Sheen/Matte) *'),
+                        decoration: const InputDecoration(labelText: 'Finish Type *', hintText: 'e.g. Matte'),
                         validator: (v) => v == null || v.trim().isEmpty ? 'Required' : null,
                       ),
                     ),
@@ -334,20 +341,14 @@ class _AddEditProductScreenState extends ConsumerState<AddEditProductScreen> {
                         initialValue: _selectedRange,
                         decoration: const InputDecoration(labelText: 'Range *'),
                         items: _ranges.map((r) => DropdownMenuItem(value: r, child: Text(r))).toList(),
-                        onChanged: (val) {
-                          if (val != null) {
-                            setState(() {
-                              _selectedRange = val;
-                            });
-                          }
-                        },
+                        onChanged: (v) => setState(() => _selectedRange = v ?? _selectedRange),
                       ),
                     ),
                     const SizedBox(width: AppSizes.p16),
                     Expanded(
                       child: TextFormField(
                         controller: _specialityController,
-                        decoration: const InputDecoration(labelText: 'Speciality (e.g. Teflon Surface Protector) *'),
+                        decoration: const InputDecoration(labelText: 'Speciality *', hintText: 'e.g. Washable Protective Coat'),
                         validator: (v) => v == null || v.trim().isEmpty ? 'Required' : null,
                       ),
                     ),
@@ -431,16 +432,16 @@ class _AddEditProductScreenState extends ConsumerState<AddEditProductScreen> {
                   maxLines: 4,
                   decoration: const InputDecoration(
                     labelText: 'Product Description *',
-                    hintText: 'Enter paint detailed characteristics, premium qualities, washable coatings details, etc.',
+                    hintText: 'Describe key qualities, texture finishes, and protection terms.',
                   ),
                   validator: (v) => v == null || v.trim().isEmpty ? 'Required' : null,
                 ),
-                const SizedBox(height: AppSizes.p32),
+                const SizedBox(height: AppSizes.p24),
 
-                // Submit Button
                 GradientButton(
-                  text: isEdit ? 'Save Paint Details' : 'Add Paint to Catalog',
-                  onPressed: _save,
+                  text: 'Launch Paint Live',
+                  isLoading: _isSubmitting,
+                  onPressed: _submit,
                 ),
                 const SizedBox(height: 40),
               ],

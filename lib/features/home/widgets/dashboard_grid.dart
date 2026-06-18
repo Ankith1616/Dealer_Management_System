@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:uuid/uuid.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_sizes.dart';
 import '../../../core/widgets/glass_card.dart';
 import '../../../core/widgets/gradient_button.dart';
+import '../../../data/models/complaint_model.dart';
+import '../../../providers/complaint_provider.dart';
+import '../../../providers/activity_history_provider.dart';
+import '../../../providers/auth_provider.dart';
 
 class DashboardGrid extends ConsumerWidget {
   const DashboardGrid({super.key});
@@ -33,10 +38,62 @@ class DashboardGrid extends ConsumerWidget {
     );
   }
 
+  void _showLoginRequiredDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppSizes.radiusL),
+        ),
+        title: Row(
+          children: const [
+            Icon(Icons.lock_outline_rounded, color: AppColors.secondary, size: 28),
+            SizedBox(width: 8),
+            Text('Login Required'),
+          ],
+        ),
+        content: const Text(
+          'You need to be logged in to access this feature. Please sign in to continue.',
+          style: TextStyle(fontSize: 14),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(AppSizes.radiusM),
+              ),
+            ),
+            onPressed: () {
+              Navigator.pop(context); // Pop dialog
+              context.push('/login'); // Navigate to login
+            },
+            child: const Text('Login'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final size = MediaQuery.of(context).size;
     final columns = size.width > 900 ? 4 : (size.width > 600 ? 3 : 2);
+    final authState = ref.watch(authStateProvider);
+    final isAuth = authState.isAuthenticated;
+
+    void checkAuthAndCall(VoidCallback callback) {
+      if (isAuth) {
+        callback();
+      } else {
+        _showLoginRequiredDialog(context);
+      }
+    }
 
     final List<_GridItemData> items = [
       _GridItemData(
@@ -51,7 +108,7 @@ class DashboardGrid extends ConsumerWidget {
         subtitle: 'Read & write reviews',
         icon: Icons.rate_review_outlined,
         color: Colors.amber.shade700,
-        onTap: () => context.push('/reviews'),
+        onTap: () => checkAuthAndCall(() => context.push('/reviews')),
       ),
       _GridItemData(
         title: 'Comparison',
@@ -65,35 +122,35 @@ class DashboardGrid extends ConsumerWidget {
         subtitle: 'Get support or log issues',
         icon: Icons.support_agent_outlined,
         color: Colors.red.shade600,
-        onTap: () => _showComplaintsModal(context),
+        onTap: () => checkAuthAndCall(() => _showComplaintsModal(context)),
       ),
       _GridItemData(
         title: 'Warranty',
         subtitle: 'Check coverage & terms',
         icon: Icons.gpp_good_outlined,
         color: Colors.teal.shade600,
-        onTap: () => _showWarrantyModal(context),
+        onTap: () => checkAuthAndCall(() => _showWarrantyModal(context)),
       ),
       _GridItemData(
         title: 'Calculate Budget',
         subtitle: 'Estimate quantity & cost',
         icon: Icons.calculate_outlined,
         color: Colors.purple.shade600,
-        onTap: () => context.go('/budget'),
+        onTap: () => checkAuthAndCall(() => context.go('/budget')),
       ),
       _GridItemData(
         title: 'History',
         subtitle: 'View recent activities',
         icon: Icons.history_rounded,
         color: Colors.blue.shade600,
-        onTap: () => _showHistoryModal(context),
+        onTap: () => checkAuthAndCall(() => _showHistoryModal(context)),
       ),
       _GridItemData(
         title: 'Profile',
         subtitle: 'Manage account details',
         icon: Icons.person_outline_rounded,
         color: Colors.indigo.shade600,
-        onTap: () => context.go('/profile'),
+        onTap: () => checkAuthAndCall(() => context.go('/profile')),
       ),
     ];
 
@@ -229,14 +286,14 @@ class _DashboardGridItemState extends State<_DashboardGridItem> {
   }
 }
 
-class _ComplaintsBottomSheet extends StatefulWidget {
+class _ComplaintsBottomSheet extends ConsumerStatefulWidget {
   const _ComplaintsBottomSheet();
 
   @override
-  State<_ComplaintsBottomSheet> createState() => _ComplaintsBottomSheetState();
+  ConsumerState<_ComplaintsBottomSheet> createState() => _ComplaintsBottomSheetState();
 }
 
-class _ComplaintsBottomSheetState extends State<_ComplaintsBottomSheet> {
+class _ComplaintsBottomSheetState extends ConsumerState<_ComplaintsBottomSheet> {
   final _formKey = GlobalKey<FormState>();
   final _queryController = TextEditingController();
   final _phoneController = TextEditingController();
@@ -249,23 +306,36 @@ class _ComplaintsBottomSheetState extends State<_ComplaintsBottomSheet> {
     super.dispose();
   }
 
-  void _submit() {
+  Future<void> _submit() async {
     if (_formKey.currentState!.validate()) {
-      Navigator.pop(context);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            children: const [
-              Icon(Icons.check_circle_outline, color: Colors.white),
-              SizedBox(width: 8),
-              Expanded(
-                child: Text('Support request submitted! We will contact you within 24 hours.'),
-              ),
-            ],
-          ),
-          backgroundColor: AppColors.success,
-        ),
+      final newComplaint = ComplaintModel(
+        id: const Uuid().v4(),
+        type: _selectedType,
+        phone: _phoneController.text.trim(),
+        content: _queryController.text.trim(),
+        createdAt: DateTime.now(),
       );
+
+      await ref.read(complaintRepositoryProvider).submitComplaint(newComplaint);
+      ref.invalidate(allComplaintsProvider);
+
+      if (mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: const [
+                Icon(Icons.check_circle_outline, color: Colors.white),
+                SizedBox(width: 8),
+                Expanded(
+                  child: Text('Support request submitted! We will contact you within 24 hours.'),
+                ),
+              ],
+            ),
+            backgroundColor: AppColors.success,
+          ),
+        );
+      }
     }
   }
 
@@ -444,46 +514,74 @@ class _WarrantyBullet extends StatelessWidget {
   }
 }
 
-class _HistoryDialog extends StatelessWidget {
+class _HistoryDialog extends ConsumerWidget {
   const _HistoryDialog();
 
+  String _getRelativeTime(DateTime dateTime) {
+    final now = DateTime.now();
+    final difference = now.difference(dateTime);
+
+    if (difference.isNegative || difference.inSeconds < 15) {
+      return 'Just now';
+    } else if (difference.inMinutes < 60) {
+      final mins = difference.inMinutes;
+      return '$mins min${mins > 1 ? "s" : ""} ago';
+    } else if (difference.inHours < 24) {
+      final hours = difference.inHours;
+      return '$hours hour${hours > 1 ? "s" : ""} ago';
+    } else if (difference.inDays < 7) {
+      final days = difference.inDays;
+      return '$days day${days > 1 ? "s" : ""} ago';
+    } else {
+      return '${dateTime.day}/${dateTime.month}/${dateTime.year}';
+    }
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final activities = ref.watch(activityHistoryProvider);
+
     return AlertDialog(
       title: Row(
-        children: const [
-          Icon(Icons.history_rounded, color: Colors.blue),
-          SizedBox(width: 8),
-          Text('Activity History'),
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Row(
+            children: const [
+              Icon(Icons.history_rounded, color: Colors.blue),
+              SizedBox(width: 8),
+              Text('Activity History'),
+            ],
+          ),
+          if (activities.isNotEmpty)
+            TextButton(
+              onPressed: () {
+                ref.read(activityHistoryProvider.notifier).clearAll();
+              },
+              child: const Text('Clear All', style: TextStyle(fontSize: 12, color: Colors.red)),
+            ),
         ],
       ),
       content: SizedBox(
         width: 400,
-        child: ListView(
-          shrinkWrap: true,
-          children: const [
-            _HistoryItem(
-              title: 'Searched "Nexon Paints"',
-              time: '15 mins ago',
-              icon: Icons.search,
-            ),
-            _HistoryItem(
-              title: 'Compared "Swagat Emulsion" vs "Royale"',
-              time: '1 hour ago',
-              icon: Icons.compare_arrows,
-            ),
-            _HistoryItem(
-              title: 'Estimated Paint Budget for living room',
-              time: 'Yesterday',
-              icon: Icons.calculate_outlined,
-            ),
-            _HistoryItem(
-              title: 'Submitted review for "Royale Emulsion"',
-              time: '3 days ago',
-              icon: Icons.rate_review_outlined,
-            ),
-          ],
-        ),
+        child: activities.isEmpty
+            ? const Padding(
+                padding: EdgeInsets.symmetric(vertical: 24),
+                child: Center(
+                  child: Text('No recent activities found.', style: TextStyle(color: Colors.grey)),
+                ),
+              )
+            : ListView.builder(
+                shrinkWrap: true,
+                itemCount: activities.length,
+                itemBuilder: (context, index) {
+                  final item = activities[index];
+                  return _HistoryItem(
+                    title: item.title,
+                    time: _getRelativeTime(item.timestamp),
+                    icon: item.icon,
+                  );
+                },
+              ),
       ),
       actions: [
         TextButton(

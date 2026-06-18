@@ -41,7 +41,7 @@ class _ReviewsListScreenState extends ConsumerState<ReviewsListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final allReviewsAsync = ref.watch(allReviewsProvider);
+    final allReviewsAsync = ref.watch(approvedReviewsProvider);
 
     return Scaffold(
       appBar: const CustomAppBar(title: 'All Reviews'),

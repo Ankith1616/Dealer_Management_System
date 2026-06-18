@@ -1,40 +1,37 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/product_model.dart';
-import '../mock/mock_data.dart';
 
 class ProductRepository {
-  final List<ProductModel> _products = List.from(MockData.products);
+  final _db = FirebaseFirestore.instance;
 
   Future<List<ProductModel>> getAllProducts() async {
-    await Future.delayed(const Duration(milliseconds: 500));
-    return _products;
+    final snap = await _db.collection('products').get();
+    return snap.docs.map((doc) => ProductModel.fromMap(doc.data())).toList();
   }
 
   Future<ProductModel?> getProductById(String id) async {
-    await Future.delayed(const Duration(milliseconds: 300));
-    try {
-      return _products.firstWhere((p) => p.id == id);
-    } catch (e) {
-      return null;
+    final doc = await _db.collection('products').doc(id).get();
+    if (doc.exists && doc.data() != null) {
+      return ProductModel.fromMap(doc.data()!);
     }
+    return null;
   }
 
   Future<List<ProductModel>> getProductsByCategory(String category) async {
-    await Future.delayed(const Duration(milliseconds: 400));
-    return _products.where((p) => p.category == category).toList();
+    final snap = await _db.collection('products').where('category', isEqualTo: category).get();
+    return snap.docs.map((doc) => ProductModel.fromMap(doc.data())).toList();
   }
 
   Future<List<ProductModel>> getFeaturedProducts() async {
-    await Future.delayed(const Duration(milliseconds: 400));
-    // Just return top 5 rated products as featured
-    var sorted = List<ProductModel>.from(_products);
-    sorted.sort((a, b) => b.rating.compareTo(a.rating));
-    return sorted.take(5).toList();
+    final all = await getAllProducts();
+    all.sort((a, b) => b.rating.compareTo(a.rating));
+    return all.take(5).toList();
   }
 
   Future<List<ProductModel>> searchProducts(String query) async {
-    await Future.delayed(const Duration(milliseconds: 500));
+    final all = await getAllProducts();
     final q = query.toLowerCase();
-    return _products.where((p) => 
+    return all.where((p) => 
       p.name.toLowerCase().contains(q) || 
       p.brand.toLowerCase().contains(q) ||
       p.category.toLowerCase().contains(q)
@@ -42,21 +39,15 @@ class ProductRepository {
   }
 
   Future<ProductModel> addProduct(ProductModel product) async {
-    await Future.delayed(const Duration(milliseconds: 800));
-    _products.add(product);
+    await _db.collection('products').doc(product.id).set(product.toMap());
     return product;
   }
 
   Future<void> updateProduct(ProductModel product) async {
-    await Future.delayed(const Duration(milliseconds: 800));
-    final index = _products.indexWhere((p) => p.id == product.id);
-    if (index != -1) {
-      _products[index] = product;
-    }
+    await _db.collection('products').doc(product.id).set(product.toMap());
   }
 
   Future<void> deleteProduct(String id) async {
-    await Future.delayed(const Duration(milliseconds: 600));
-    _products.removeWhere((p) => p.id == id);
+    await _db.collection('products').doc(id).delete();
   }
 }
