@@ -362,6 +362,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         icon: isDealer ? Icons.format_paint_outlined : Icons.rate_review_outlined,
                         title: isDealer ? 'Products Managed' : 'Reviews Written',
                         value: isDealer ? productsManagedValue : reviewsWrittenValue,
+                        onTap: isDealer ? null : () => _showReviewsWrittenSheet(user.uid),
                       ),
                     ),
                     const SizedBox(width: AppSizes.p16),
@@ -371,6 +372,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         icon: isDealer ? Icons.analytics_outlined : Icons.calculate_outlined,
                         title: isDealer ? 'Store Rating' : 'Saved Estimates',
                         value: isDealer ? storeRatingValue : savedEstimatesValue,
+                        onTap: isDealer ? null : _showSavedEstimatesSheet,
                       ),
                     ),
                   ],
@@ -415,15 +417,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       ),
                       const Divider(height: 1),
                       ListTile(
-                        leading: const Icon(Icons.security_outlined, color: AppColors.primary),
-                        title: const Text('Security & Privacy'),
-                        subtitle: const Text('Change password, account logs'),
+                        leading: const Icon(Icons.lock_outline_rounded, color: AppColors.primary),
+                        title: const Text('Change Password'),
+                        subtitle: const Text('Update your login security credentials'),
                         trailing: const Icon(Icons.chevron_right),
-                        onTap: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Security settings are mocked in this demo version')),
-                          );
-                        },
+                        onTap: _showChangePasswordDialog,
                       ),
                     ],
                   ),
@@ -693,35 +691,383 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
+  void _showChangePasswordDialog() {
+    final formKey = GlobalKey<FormState>();
+    final oldPasswordController = TextEditingController();
+    final newPasswordController = TextEditingController();
+    final confirmPasswordController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Change Password'),
+          content: Form(
+            key: formKey,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextFormField(
+                    controller: oldPasswordController,
+                    decoration: const InputDecoration(
+                      labelText: 'Current Password',
+                      border: OutlineInputBorder(),
+                    ),
+                    obscureText: true,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter current password';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: AppSizes.p16),
+                  TextFormField(
+                    controller: newPasswordController,
+                    decoration: const InputDecoration(
+                      labelText: 'New Password',
+                      border: OutlineInputBorder(),
+                    ),
+                    obscureText: true,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter new password';
+                      }
+                      if (value.length < 6) {
+                        return 'Password must be at least 6 characters';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: AppSizes.p16),
+                  TextFormField(
+                    controller: confirmPasswordController,
+                    decoration: const InputDecoration(
+                      labelText: 'Confirm New Password',
+                      border: OutlineInputBorder(),
+                    ),
+                    obscureText: true,
+                    validator: (value) {
+                      if (value != newPasswordController.text) {
+                        return 'Passwords do not match';
+                      }
+                      return null;
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                if (formKey.currentState?.validate() == true) {
+                  final messenger = ScaffoldMessenger.of(context);
+                  final navigator = Navigator.of(context);
+                  
+                  final success = await ref.read(authStateProvider.notifier).changePassword(
+                    oldPasswordController.text,
+                    newPasswordController.text,
+                  );
+                  
+                  if (success) {
+                    messenger.showSnackBar(
+                      const SnackBar(
+                        content: Text('Password changed successfully!'),
+                        behavior: SnackBarBehavior.floating,
+                      ),
+                    );
+                    navigator.pop();
+                  } else {
+                    final err = ref.read(authStateProvider).error ?? 'Failed to change password';
+                    messenger.showSnackBar(
+                      SnackBar(
+                        content: Text(err),
+                        behavior: SnackBarBehavior.floating,
+                        backgroundColor: AppColors.error,
+                      ),
+                    );
+                  }
+                }
+              },
+              child: const Text('Save'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showSavedEstimatesSheet() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return DraggableScrollableSheet(
+          initialChildSize: 0.6,
+          minChildSize: 0.4,
+          maxChildSize: 0.9,
+          builder: (context, scrollController) {
+            final isDark = Theme.of(context).brightness == Brightness.dark;
+            return Container(
+              decoration: BoxDecoration(
+                color: isDark ? Colors.grey[900] : Colors.white,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(AppSizes.radiusL)),
+              ),
+              padding: const EdgeInsets.all(AppSizes.p20),
+              child: Consumer(
+                builder: (context, ref, child) {
+                  final savedBudgetsAsync = ref.watch(savedBudgetsProvider);
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Center(
+                        child: Container(
+                          width: 40,
+                          height: 5,
+                          decoration: BoxDecoration(
+                            color: Colors.grey[400],
+                            borderRadius: BorderRadius.circular(AppSizes.radiusS),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: AppSizes.p16),
+                      Text(
+                        'Saved Estimates',
+                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: AppSizes.p16),
+                      Expanded(
+                        child: savedBudgetsAsync.when(
+                          data: (budgets) {
+                            if (budgets.isEmpty) {
+                              return const Center(
+                                child: Text('No saved estimates found.'),
+                              );
+                            }
+                            return ListView.separated(
+                              controller: scrollController,
+                              itemCount: budgets.length,
+                              separatorBuilder: (context, index) => const SizedBox(height: AppSizes.p12),
+                              itemBuilder: (context, index) {
+                                final budget = budgets[index];
+                                return Card(
+                                  child: ListTile(
+                                    title: Text(
+                                      'Cost: ${Helpers.formatCurrency(budget.totalCost)}',
+                                      style: const TextStyle(fontWeight: FontWeight.bold),
+                                    ),
+                                    subtitle: Text(
+                                      'Rooms: ${budget.rooms.length} | Area: ${budget.totalArea.toStringAsFixed(1)} sq ft\nSaved: ${Helpers.formatDate(budget.createdAt)}',
+                                    ),
+                                    trailing: IconButton(
+                                      icon: const Icon(Icons.delete_outline, color: AppColors.error),
+                                      onPressed: () async {
+                                        await ref.read(budgetRepositoryProvider).deleteBudget(budget.id);
+                                        ref.invalidate(savedBudgetsProvider);
+                                      },
+                                    ),
+                                  ),
+                                );
+                              },
+                            );
+                          },
+                          loading: () => const Center(child: CircularProgressIndicator()),
+                          error: (err, stack) => Center(child: Text('Error: $err')),
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _showReviewsWrittenSheet(String userId) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return DraggableScrollableSheet(
+          initialChildSize: 0.6,
+          minChildSize: 0.4,
+          maxChildSize: 0.9,
+          builder: (context, scrollController) {
+            final isDark = Theme.of(context).brightness == Brightness.dark;
+            return Container(
+              decoration: BoxDecoration(
+                color: isDark ? Colors.grey[900] : Colors.white,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(AppSizes.radiusL)),
+              ),
+              padding: const EdgeInsets.all(AppSizes.p20),
+              child: Consumer(
+                builder: (context, ref, child) {
+                  final reviewsAsync = ref.watch(userReviewsProvider(userId));
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Center(
+                        child: Container(
+                          width: 40,
+                          height: 5,
+                          decoration: BoxDecoration(
+                            color: Colors.grey[400],
+                            borderRadius: BorderRadius.circular(AppSizes.radiusS),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: AppSizes.p16),
+                      Text(
+                        'Your Reviews',
+                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: AppSizes.p16),
+                      Expanded(
+                        child: reviewsAsync.when(
+                          data: (reviews) {
+                            if (reviews.isEmpty) {
+                              return const Center(
+                                child: Text('You have not written any reviews yet.'),
+                              );
+                            }
+                            return ListView.separated(
+                              controller: scrollController,
+                              itemCount: reviews.length,
+                              separatorBuilder: (context, index) => const SizedBox(height: AppSizes.p12),
+                              itemBuilder: (context, index) {
+                                final review = reviews[index];
+                                final statusText = review.isRejected == true
+                                    ? 'Deleted / Rejected'
+                                    : (review.isApproved == true ? 'Published' : 'Pending Approval');
+                                final statusColor = review.isRejected == true
+                                    ? AppColors.error
+                                    : (review.isApproved == true ? AppColors.success : Colors.orange);
+                                return Card(
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(AppSizes.p16),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Text(
+                                              review.productName,
+                                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                            ),
+                                            Container(
+                                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                              decoration: BoxDecoration(
+                                                color: statusColor.withValues(alpha: 0.1),
+                                                borderRadius: BorderRadius.circular(AppSizes.radiusS),
+                                              ),
+                                              child: Text(
+                                                statusText,
+                                                style: TextStyle(color: statusColor, fontSize: 11, fontWeight: FontWeight.bold),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        const SizedBox(height: AppSizes.p8),
+                                        Row(
+                                          children: List.generate(5, (index) {
+                                            return Icon(
+                                              index < review.rating ? Icons.star : Icons.star_border,
+                                              color: Colors.amber,
+                                              size: 18,
+                                            );
+                                          }),
+                                        ),
+                                        const SizedBox(height: AppSizes.p8),
+                                        Text(
+                                          review.title,
+                                          style: const TextStyle(fontWeight: FontWeight.w600),
+                                        ),
+                                        const SizedBox(height: AppSizes.p4),
+                                        Text(review.description),
+                                        const SizedBox(height: AppSizes.p8),
+                                        Text(
+                                          Helpers.formatDate(review.createdAt),
+                                          style: const TextStyle(color: Colors.grey, fontSize: 11),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              },
+                            );
+                          },
+                          loading: () => const Center(child: CircularProgressIndicator()),
+                          error: (err, stack) => Center(child: Text('Error: $err')),
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
   Widget _buildStatTile({
     required BuildContext context,
     required IconData icon,
     required String title,
     required String value,
+    VoidCallback? onTap,
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    return GlassCard(
-      padding: const EdgeInsets.all(AppSizes.p20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, color: AppColors.primary, size: 28),
-          const SizedBox(height: AppSizes.p12),
-          Text(
-            value,
-            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-          ),
-          const SizedBox(height: AppSizes.p4),
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 12,
-              color: isDark ? Colors.white60 : Colors.grey,
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(AppSizes.radiusL),
+      child: GlassCard(
+        padding: const EdgeInsets.all(AppSizes.p20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Icon(icon, color: AppColors.primary, size: 28),
+                if (onTap != null)
+                  Icon(
+                    Icons.arrow_outward_outlined,
+                    size: 16,
+                    color: isDark ? Colors.white38 : Colors.black38,
+                  ),
+              ],
             ),
-          ),
-        ],
+            const SizedBox(height: AppSizes.p12),
+            Text(
+              value,
+              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+            ),
+            const SizedBox(height: AppSizes.p4),
+            Text(
+              title,
+              style: TextStyle(
+                fontSize: 12,
+                color: isDark ? Colors.white60 : Colors.grey,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -449,6 +449,41 @@ class AuthRepository {
     return _currentUser!;
   }
 
+  Future<void> changePassword(String oldPassword, String newPassword) async {
+    final user = _currentUser;
+    if (user == null) {
+      throw Exception('No user is currently logged in');
+    }
+
+    final fbUser = _firebaseAuth.currentUser;
+    if (fbUser != null) {
+      try {
+        await fbUser.updatePassword(newPassword);
+      } on fb_auth.FirebaseAuthException catch (e) {
+        throw Exception(e.message ?? 'Failed to update password');
+      }
+    } else {
+      final phone = user.phoneNumber;
+      final currentPass = _customerPasswords[phone];
+      if (currentPass != oldPassword) {
+        throw Exception('Incorrect current password');
+      }
+      _customerPasswords[phone] = newPassword;
+
+      final firestore = _firestore;
+      if (firestore != null) {
+        try {
+          await firestore.collection('mock_users').doc(phone).set({
+            'user': user.toMap(),
+            'password': newPassword,
+          });
+        } catch (e) {
+          debugPrint('Firestore changePassword error: $e');
+        }
+      }
+    }
+  }
+
   Future<void> logout() async {
     await _firebaseAuth.signOut();
     _currentUser = null;

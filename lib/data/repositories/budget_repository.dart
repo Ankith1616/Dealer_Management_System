@@ -43,4 +43,9 @@ class BudgetRepository {
     sorted.sort((a, b) => b.createdAt.compareTo(a.createdAt));
     return sorted;
   }
+
+  Future<void> deleteBudget(String id) async {
+    await Future.delayed(const Duration(milliseconds: 200));
+    _savedBudgets.removeWhere((b) => b.id == id);
+  }
 }
