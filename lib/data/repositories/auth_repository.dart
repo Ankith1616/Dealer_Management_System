@@ -152,6 +152,16 @@ class AuthRepository {
             final mockPassword = data['password'] as String;
             _customerUsers[identifier] = mockUser;
             _customerPasswords[identifier] = mockPassword;
+          } else {
+            // Write initial customer mock data if it does not exist in Firestore yet
+            final localUser = _customerUsers[identifier];
+            final localPassword = _customerPasswords[identifier];
+            if (localUser != null && localPassword != null) {
+              await firestore.collection('mock_users').doc(identifier).set({
+                'user': localUser.toMap(),
+                'password': localPassword,
+              });
+            }
           }
         } catch (e) {
           debugPrint('Firestore mock login sync error: $e');
@@ -393,6 +403,33 @@ class AuthRepository {
         _customerUsers.remove(oldPhone);
         final password = _customerPasswords.remove(oldPhone) ?? '123456';
         _customerPasswords[cleanPhone] = password;
+        
+        final firestore = _firestore;
+        if (firestore != null) {
+          try {
+            await firestore.collection('mock_users').doc(oldPhone).delete();
+            await firestore.collection('mock_users').doc(cleanPhone).set({
+              'user': updatedUser.toMap(),
+              'password': password,
+            });
+          } catch (e) {
+            debugPrint('Firestore mock profile update phone change error: $e');
+          }
+        }
+      } else {
+        final firestore = _firestore;
+        if (firestore != null) {
+          try {
+            final doc = await firestore.collection('mock_users').doc(cleanPhone).get();
+            final password = doc.exists ? (doc.data()?['password'] as String? ?? '123456') : '123456';
+            await firestore.collection('mock_users').doc(cleanPhone).set({
+              'user': updatedUser.toMap(),
+              'password': password,
+            });
+          } catch (e) {
+            debugPrint('Firestore mock profile update error: $e');
+          }
+        }
       }
       _customerUsers[cleanPhone] = updatedUser;
     }
