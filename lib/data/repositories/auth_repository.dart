@@ -2,10 +2,12 @@ import 'package:firebase_auth/firebase_auth.dart' as fb_auth;
 // ignore: depend_on_referenced_packages
 import 'package:firebase_auth_platform_interface/firebase_auth_platform_interface.dart' as fb_auth_platform;
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import '../models/user_model.dart';
 import '../mock/mock_data.dart';
 import 'package:uuid/uuid.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'local_storage_helper.dart';
 
 class AuthRepository {
   final fb_auth.FirebaseAuth _firebaseAuth;
@@ -21,6 +23,14 @@ class AuthRepository {
     '9876543210': MockData.customerUser,
   };
 
+  FirebaseFirestore? get _firestore {
+    try {
+      return FirebaseFirestore.instance;
+    } catch (_) {
+      return null;
+    }
+  }
+
   AuthRepository({fb_auth.FirebaseAuth? firebaseAuth})
       : _firebaseAuth = firebaseAuth ?? fb_auth.FirebaseAuth.instance {
     _initCurrentUser();
@@ -32,6 +42,11 @@ class AuthRepository {
     final fbUser = _firebaseAuth.currentUser;
     if (fbUser != null) {
       final email = fbUser.email?.toLowerCase();
+      final storedUser = LocalStorageHelper.getUserProfile(fbUser.uid);
+      if (storedUser != null) {
+        _currentUser = storedUser;
+        return;
+      }
       if (email == 'vasavitraders2004@gmail.com') {
         _currentUser = MockData.dealerUser.copyWith(uid: fbUser.uid);
       } else if (email != null && email.isNotEmpty) {
@@ -49,6 +64,45 @@ class AuthRepository {
     }
   }
 
+  Future<UserModel?> getCurrentUserWithProfile() async {
+    final fbUser = _firebaseAuth.currentUser;
+    if (fbUser == null) {
+      _currentUser = null;
+      return null;
+    }
+
+    final firestore = _firestore;
+    if (firestore != null) {
+      try {
+        final doc = await firestore.collection('users').doc(fbUser.uid).get();
+        if (doc.exists && doc.data() != null) {
+          final user = UserModel.fromMap(doc.data()!);
+          _currentUser = user;
+          LocalStorageHelper.saveUserProfile(fbUser.uid, user);
+          return _currentUser;
+        } else {
+          if (_currentUser == null) {
+            _initCurrentUser();
+          }
+          if (_currentUser != null) {
+            await firestore.collection('users').doc(fbUser.uid).set(_currentUser!.toMap());
+            LocalStorageHelper.saveUserProfile(fbUser.uid, _currentUser!);
+          }
+        }
+      } catch (e) {
+        debugPrint('Firestore load user profile error: $e');
+      }
+    }
+
+    final storedUser = LocalStorageHelper.getUserProfile(fbUser.uid);
+    if (storedUser != null) {
+      _currentUser = storedUser;
+    } else if (_currentUser == null) {
+      _initCurrentUser();
+    }
+    return _currentUser;
+  }
+
   Future<UserModel> login(String emailOrPhone, String password) async {
     final identifier = emailOrPhone.trim().toLowerCase();
     
@@ -61,10 +115,8 @@ class AuthRepository {
         );
         
         if (identifier == 'vasavitraders2004@gmail.com') {
-          // Keep predefined dealer properties but update the UID from Firebase
           _currentUser = MockData.dealerUser.copyWith(uid: credential.user?.uid);
         } else {
-          // Other dealers / email logins
           _currentUser = UserModel(
             uid: credential.user?.uid ?? const Uuid().v4(),
             email: identifier,
@@ -75,6 +127,25 @@ class AuthRepository {
             createdAt: DateTime.now(),
           );
         }
+
+        final fbUser = credential.user;
+        if (fbUser != null) {
+          final firestore = _firestore;
+          if (firestore != null) {
+            try {
+              final doc = await firestore.collection('users').doc(fbUser.uid).get();
+              if (doc.exists && doc.data() != null) {
+                _currentUser = UserModel.fromMap(doc.data()!);
+              } else {
+                await firestore.collection('users').doc(fbUser.uid).set(_currentUser!.toMap());
+              }
+            } catch (e) {
+              debugPrint('Firestore login profile sync error: $e');
+            }
+          }
+          LocalStorageHelper.saveUserProfile(fbUser.uid, _currentUser!);
+        }
+
         return _currentUser!;
       } on fb_auth.FirebaseAuthException catch (e) {
         throw Exception(e.message ?? 'Authentication failed');
@@ -229,6 +300,22 @@ class AuthRepository {
           _customerUsers[_currentUser!.phoneNumber] = _currentUser!;
         }
       }
+
+      final firestore = _firestore;
+      if (firestore != null) {
+        try {
+          final doc = await firestore.collection('users').doc(fbUser.uid).get();
+          if (doc.exists && doc.data() != null) {
+            _currentUser = UserModel.fromMap(doc.data()!);
+          } else {
+            await firestore.collection('users').doc(fbUser.uid).set(_currentUser!.toMap());
+          }
+        } catch (e) {
+          debugPrint('Firestore loginWithGoogle profile sync error: $e');
+        }
+      }
+      LocalStorageHelper.saveUserProfile(fbUser.uid, _currentUser!);
+
       return _currentUser!;
     } catch (e) {
       throw Exception(e.toString().replaceAll('Exception: ', ''));
@@ -280,6 +367,20 @@ class AuthRepository {
         _customerPasswords[cleanPhone] = password;
       }
       _customerUsers[cleanPhone] = updatedUser;
+    }
+
+    if (fbUser != null) {
+      LocalStorageHelper.saveUserProfile(fbUser.uid, updatedUser);
+      final firestore = _firestore;
+      if (firestore != null) {
+        try {
+          await firestore.collection('users').doc(fbUser.uid).set(updatedUser.toMap());
+        } catch (e) {
+          debugPrint('Firestore updateProfile error: $e');
+        }
+      }
+    } else {
+      LocalStorageHelper.saveUserProfile(updatedUser.uid, updatedUser);
     }
 
     _currentUser = updatedUser;

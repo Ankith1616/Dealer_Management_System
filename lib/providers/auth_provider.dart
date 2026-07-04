@@ -53,13 +53,24 @@ class AuthNotifier extends StateNotifier<AuthState> {
     _checkCurrentUser();
   }
 
-  void _checkCurrentUser() {
-    final user = _repository.currentUser;
-    if (user != null) {
+  Future<void> _checkCurrentUser() async {
+    final cachedUser = _repository.currentUser;
+    if (cachedUser != null) {
       state = AuthState(
         isAuthenticated: true,
-        user: user,
+        user: cachedUser,
       );
+    }
+    try {
+      final latestUser = await _repository.getCurrentUserWithProfile();
+      if (latestUser != null) {
+        state = AuthState(
+          isAuthenticated: true,
+          user: latestUser,
+        );
+      }
+    } catch (_) {
+      // Ignore database loading errors on startup
     }
   }
 
