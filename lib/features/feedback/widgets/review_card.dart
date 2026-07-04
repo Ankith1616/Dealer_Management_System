@@ -53,6 +53,8 @@ class ReviewCard extends StatelessWidget {
                           const SizedBox(width: AppSizes.p8),
                           _buildUserTypeBadge(context, review.userType!),
                         ],
+                        const SizedBox(width: AppSizes.p8),
+                        _buildApprovalStatusBadge(context, review.isApproved ?? false),
                       ],
                     ),
                     Text(
@@ -159,6 +161,37 @@ class ReviewCard extends StatelessWidget {
       label = 'Wholesale';
       icon = Icons.storefront_outlined;
     }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: badgeColor.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(AppSizes.radiusS),
+        border: Border.all(color: badgeColor.withValues(alpha: 0.2), width: 0.5),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 10, color: badgeColor),
+          const SizedBox(width: 3),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 9,
+              color: badgeColor,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 0.3,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildApprovalStatusBadge(BuildContext context, bool isApproved) {
+    final badgeColor = isApproved ? Colors.green : Colors.orange;
+    final label = isApproved ? 'Live & Approved' : 'Pending Approval';
+    final icon = isApproved ? Icons.check_circle_outline : Icons.hourglass_empty_rounded;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),

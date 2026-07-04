@@ -51,8 +51,7 @@ class FilterPanel extends StatelessWidget {
     final sortOptions = [
       'Newest',
       'Price Low-High',
-      'Price High-Low',
-      'Rating'
+      'Price High-Low'
     ];
 
     final brands = [

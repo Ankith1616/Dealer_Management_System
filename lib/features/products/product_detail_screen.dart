@@ -5,13 +5,14 @@ import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_sizes.dart';
 import '../../core/widgets/custom_app_bar.dart';
 import '../../core/widgets/gradient_button.dart';
-import '../../core/widgets/rating_stars.dart';
 import '../../core/widgets/product_image_view.dart';
 import '../../core/utils/helpers.dart';
 import '../../providers/product_provider.dart';
 import '../../providers/comparison_provider.dart';
 import '../../providers/budget_provider.dart';
 import 'widgets/product_specs.dart';
+import '../../core/widgets/rating_stars.dart';
+import '../../providers/review_provider.dart';
 import '../comparison/widgets/comparison_tray.dart';
 
 class ProductDetailScreen extends ConsumerWidget {
@@ -34,6 +35,7 @@ class ProductDetailScreen extends ConsumerWidget {
               }
               
               final isComparing = ref.watch(comparisonProvider).contains(product.id);
+              final ratingInfo = ref.watch(productRatingInfoProvider(product.id));
 
               Color bgColor;
               try {
@@ -151,13 +153,15 @@ class ProductDetailScreen extends ConsumerWidget {
                                       fontWeight: FontWeight.bold,
                                     ),
                               ),
-                              Row(
-                                children: [
-                                  RatingStars(rating: product.rating, size: 20),
-                                  const SizedBox(width: AppSizes.p8),
-                                  Text('(${product.reviewCount})'),
-                                ],
-                              ),
+                              if (ratingInfo.reviewCount > 0) ...[
+                                Row(
+                                  children: [
+                                    RatingStars(rating: ratingInfo.averageRating, size: 20),
+                                    const SizedBox(width: AppSizes.p8),
+                                    Text('(${ratingInfo.reviewCount})'),
+                                  ],
+                                ),
+                              ],
                             ],
                           ),
                           

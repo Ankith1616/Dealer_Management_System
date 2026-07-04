@@ -22,7 +22,7 @@ class ProductCatalogScreen extends ConsumerStatefulWidget {
 class _ProductCatalogScreenState extends ConsumerState<ProductCatalogScreen> {
   String _searchQuery = '';
   String? _selectedCategory;
-  String _sortBy = 'Newest'; // Newest, Price Low-High, Price High-Low, Rating
+  String _sortBy = 'Newest'; // Newest, Price Low-High, Price High-Low
   String? _selectedBrand;
   String? _selectedCoatType;
   String? _selectedEnvironment;
@@ -182,8 +182,6 @@ class _ProductCatalogScreenState extends ConsumerState<ProductCatalogScreen> {
                       filtered.sort((a, b) => a.price.compareTo(b.price));
                     } else if (_sortBy == 'Price High-Low') {
                       filtered.sort((a, b) => b.price.compareTo(a.price));
-                    } else if (_sortBy == 'Rating') {
-                      filtered.sort((a, b) => b.rating.compareTo(a.rating));
                     } else { // Newest
                       filtered.sort((a, b) => b.createdAt.compareTo(a.createdAt));
                     }

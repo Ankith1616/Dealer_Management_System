@@ -4,10 +4,11 @@ import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_sizes.dart';
 import '../../../core/widgets/glass_card.dart';
-import '../../../core/widgets/rating_stars.dart';
 import '../../../core/widgets/product_image_view.dart';
+import '../../../core/widgets/rating_stars.dart';
 import '../../../data/models/product_model.dart';
 import '../../../providers/comparison_provider.dart';
+import '../../../providers/review_provider.dart';
 
 class ProductCard extends ConsumerWidget {
   final ProductModel product;
@@ -18,6 +19,7 @@ class ProductCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final comparisonList = ref.watch(comparisonProvider);
     final isComparing = comparisonList.contains(product.id);
+    final ratingInfo = ref.watch(productRatingInfoProvider(product.id));
 
     Color bgColor;
     try {
@@ -148,32 +150,37 @@ class ProductCard extends ConsumerWidget {
                 padding: const EdgeInsets.all(AppSizes.p12),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          product.name,
-                          style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        Text(
-                          product.brand,
-                          style: Theme.of(context).textTheme.bodySmall,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
+                    Text(
+                      product.name,
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const SizedBox.shrink(),
-                        RatingStars(rating: product.rating, size: 12),
-                      ],
+                    const SizedBox(height: 4),
+                    Text(
+                      product.brand,
+                      style: Theme.of(context).textTheme.bodySmall,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
+                    if (ratingInfo.reviewCount > 0) ...[
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          RatingStars(rating: ratingInfo.averageRating, size: 10),
+                          const SizedBox(width: 4),
+                          Text(
+                            '(${ratingInfo.reviewCount})',
+                            style: TextStyle(
+                              fontSize: 9,
+                              color: Theme.of(context).textTheme.bodySmall?.color,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ],
                 ),
               ),

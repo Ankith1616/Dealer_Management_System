@@ -15,12 +15,36 @@ final approvedReviewsProvider = FutureProvider<List<ReviewModel>>((ref) async {
 });
 
 final reviewsForProductProvider = FutureProvider.family<List<ReviewModel>, String>((ref, productId) async {
-  final repo = ref.watch(reviewRepositoryProvider);
-  final reviews = await repo.getReviewsForProduct(productId);
-  return reviews.where((r) => r.isApproved ?? false).toList();
+  final allReviews = await ref.watch(allReviewsProvider.future);
+  return allReviews.where((r) => r.productId == productId && (r.isApproved ?? false)).toList();
 });
 
 final userReviewsProvider = FutureProvider.family<List<ReviewModel>, String>((ref, userId) async {
-  final repo = ref.watch(reviewRepositoryProvider);
-  return repo.getReviewsByUser(userId);
+  final allReviews = await ref.watch(allReviewsProvider.future);
+  return allReviews.where((r) => r.userId == userId).toList();
+});
+
+class ProductRatingInfo {
+  final double averageRating;
+  final int reviewCount;
+  ProductRatingInfo({required this.averageRating, required this.reviewCount});
+}
+
+final productRatingInfoProvider = Provider.family<ProductRatingInfo, String>((ref, productId) {
+  final approvedReviewsAsync = ref.watch(approvedReviewsProvider);
+  return approvedReviewsAsync.maybeWhen(
+    data: (reviews) {
+      final productReviews = reviews.where((r) => r.productId == productId).toList();
+      if (productReviews.isEmpty) {
+        return ProductRatingInfo(averageRating: 0.0, reviewCount: 0);
+      }
+      final totalRating = productReviews.fold<double>(0.0, (sum, r) => sum + r.rating);
+      final average = totalRating / productReviews.length;
+      return ProductRatingInfo(
+        averageRating: double.parse(average.toStringAsFixed(1)),
+        reviewCount: productReviews.length,
+      );
+    },
+    orElse: () => ProductRatingInfo(averageRating: 0.0, reviewCount: 0),
+  );
 });
