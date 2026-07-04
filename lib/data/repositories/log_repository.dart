@@ -94,7 +94,7 @@ class LogRepository {
       phoneNumber: '6601211601',
       role: 'customer',
       visitCount: 1,
-      lastVisited: DateTime.now().subtract(const Duration(hours: 6)),
+      lastVisited: DateTime.now().subtract(const Duration(days: 14)),
     ),
   ];
 
