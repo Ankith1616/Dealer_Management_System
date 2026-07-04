@@ -128,10 +128,12 @@ class _SubmitReviewScreenState extends ConsumerState<SubmitReviewScreen> {
         return;
       }
 
+      final resolvedProduct = product ?? await ref.read(productRepositoryProvider).getProductById(targetProductId);
+
       final newReview = ReviewModel(
         id: const Uuid().v4(),
         productId: targetProductId,
-        productName: product?.name ?? 'Unknown Product',
+        productName: resolvedProduct?.name ?? 'Unknown Product',
         userId: user.uid,
         userName: _custNameController.text.isNotEmpty ? _custNameController.text : user.displayName,
         userPhotoUrl: user.photoUrl,
