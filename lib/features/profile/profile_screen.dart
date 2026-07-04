@@ -13,6 +13,7 @@ import '../../providers/product_provider.dart';
 import '../../providers/review_provider.dart';
 import '../../providers/budget_provider.dart';
 import '../../data/models/user_model.dart';
+import '../../data/models/budget_model.dart';
 import '../../core/utils/helpers.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
@@ -857,24 +858,25 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                               separatorBuilder: (context, index) => const SizedBox(height: AppSizes.p12),
                               itemBuilder: (context, index) {
                                 final budget = budgets[index];
-                                return Card(
-                                  child: ListTile(
-                                    title: Text(
-                                      'Cost: ${Helpers.formatCurrency(budget.totalCost)}',
-                                      style: const TextStyle(fontWeight: FontWeight.bold),
+                                  return Card(
+                                    child: ListTile(
+                                      onTap: () => _showEstimateDetailsSheet(context, budget),
+                                      title: Text(
+                                        'Cost: ${Helpers.formatCurrency(budget.totalCost)}',
+                                        style: const TextStyle(fontWeight: FontWeight.bold),
+                                      ),
+                                      subtitle: Text(
+                                        'Rooms: ${budget.rooms.length} | Area: ${budget.totalArea.toStringAsFixed(1)} sq ft\nSaved: ${Helpers.formatDate(budget.createdAt)}',
+                                      ),
+                                      trailing: IconButton(
+                                        icon: const Icon(Icons.delete_outline, color: AppColors.error),
+                                        onPressed: () async {
+                                          await ref.read(budgetRepositoryProvider).deleteBudget(budget.id);
+                                          ref.invalidate(savedBudgetsProvider);
+                                        },
+                                      ),
                                     ),
-                                    subtitle: Text(
-                                      'Rooms: ${budget.rooms.length} | Area: ${budget.totalArea.toStringAsFixed(1)} sq ft\nSaved: ${Helpers.formatDate(budget.createdAt)}',
-                                    ),
-                                    trailing: IconButton(
-                                      icon: const Icon(Icons.delete_outline, color: AppColors.error),
-                                      onPressed: () async {
-                                        await ref.read(budgetRepositoryProvider).deleteBudget(budget.id);
-                                        ref.invalidate(savedBudgetsProvider);
-                                      },
-                                    ),
-                                  ),
-                                );
+                                  );
                               },
                             );
                           },
@@ -882,6 +884,230 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                           error: (err, stack) => Center(child: Text('Error: $err')),
                         ),
                       ),
+                    ],
+                  );
+                },
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _showEstimateDetailsSheet(BuildContext context, BudgetModel budget) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return DraggableScrollableSheet(
+          initialChildSize: 0.7,
+          minChildSize: 0.5,
+          maxChildSize: 0.95,
+          builder: (context, scrollController) {
+            final isDark = Theme.of(context).brightness == Brightness.dark;
+            return Container(
+              decoration: BoxDecoration(
+                color: isDark ? Colors.grey[900] : Colors.white,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(AppSizes.radiusL)),
+              ),
+              padding: const EdgeInsets.all(AppSizes.p20),
+              child: Consumer(
+                builder: (context, ref, child) {
+                  final productsAsync = ref.watch(allProductsProvider);
+                  final product = productsAsync.maybeWhen(
+                    data: (products) {
+                      try {
+                        return products.firstWhere((p) => p.id == budget.selectedProductId);
+                      } catch (_) {
+                        return null;
+                      }
+                    },
+                    orElse: () => null,
+                  );
+
+                  return ListView(
+                    controller: scrollController,
+                    children: [
+                      Center(
+                        child: Container(
+                          width: 40,
+                          height: 5,
+                          decoration: BoxDecoration(
+                            color: Colors.grey[400],
+                            borderRadius: BorderRadius.circular(AppSizes.radiusS),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: AppSizes.p16),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Estimation Details',
+                            style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.close),
+                            onPressed: () => Navigator.pop(context),
+                          ),
+                        ],
+                      ),
+                      const Divider(),
+                      const SizedBox(height: AppSizes.p12),
+                      
+                      // Cost card
+                      Card(
+                        color: AppColors.primary.withValues(alpha: 0.08),
+                        child: Padding(
+                          padding: const EdgeInsets.all(AppSizes.p16),
+                          child: Column(
+                            children: [
+                              const Text(
+                                'TOTAL ESTIMATED COST',
+                                style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13, letterSpacing: 1.1),
+                              ),
+                              const SizedBox(height: AppSizes.p8),
+                              Text(
+                                Helpers.formatCurrency(budget.totalCost),
+                                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                                      color: AppColors.primary,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: AppSizes.p16),
+
+                      // Metrics
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Card(
+                              child: Padding(
+                                padding: const EdgeInsets.all(AppSizes.p12),
+                                child: Column(
+                                  children: [
+                                    const Icon(Icons.aspect_ratio, color: AppColors.primary),
+                                    const SizedBox(height: AppSizes.p4),
+                                    const Text('Total Area', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                                    const SizedBox(height: AppSizes.p4),
+                                    Text('${budget.totalArea.toStringAsFixed(1)} sq ft', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: AppSizes.p8),
+                          Expanded(
+                            child: Card(
+                              child: Padding(
+                                padding: const EdgeInsets.all(AppSizes.p12),
+                                child: Column(
+                                  children: [
+                                    const Icon(Icons.opacity, color: AppColors.primary),
+                                    const SizedBox(height: AppSizes.p4),
+                                    const Text('Paint Needed', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                                    const SizedBox(height: AppSizes.p4),
+                                    Text('${budget.totalPaintLiters.toStringAsFixed(1)} L', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: AppSizes.p8),
+                          Expanded(
+                            child: Card(
+                              child: Padding(
+                                padding: const EdgeInsets.all(AppSizes.p12),
+                                child: Column(
+                                  children: [
+                                    const Icon(Icons.layers, color: AppColors.primary),
+                                    const SizedBox(height: AppSizes.p4),
+                                    const Text('Coats', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                                    const SizedBox(height: AppSizes.p4),
+                                    Text('${budget.coats}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: AppSizes.p16),
+
+                      // Product Card
+                      if (product != null) ...[
+                        Text(
+                          'Selected Paint Product',
+                          style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: AppSizes.p8),
+                        Card(
+                          child: ListTile(
+                            leading: Container(
+                              width: 48,
+                              height: 48,
+                              decoration: BoxDecoration(
+                                color: Color(int.parse(product.hexColor.replaceFirst('#', '0xFF'))),
+                                borderRadius: BorderRadius.circular(AppSizes.radiusS),
+                                border: Border.all(color: Colors.grey.shade300),
+                              ),
+                            ),
+                            title: Text(product.name, style: const TextStyle(fontWeight: FontWeight.bold)),
+                            subtitle: Text('Price: ${Helpers.formatCurrency(product.price)}/L | Coverage: ${product.coverage} sq ft/L'),
+                          ),
+                        ),
+                        const SizedBox(height: AppSizes.p16),
+                      ],
+
+                      // Rooms Card
+                      Text(
+                        'Rooms Breakdown (${budget.rooms.length})',
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: AppSizes.p8),
+                      ...budget.rooms.map((room) {
+                        return Card(
+                          margin: const EdgeInsets.only(bottom: AppSizes.p8),
+                          child: Padding(
+                            padding: const EdgeInsets.all(AppSizes.p16),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      room.name,
+                                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                                    ),
+                                    Text(
+                                      '${room.wallArea.toStringAsFixed(1)} sq ft',
+                                      style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: AppSizes.p8),
+                                Text(
+                                  'Dimensions: ${room.length.toStringAsFixed(0)}ft (L) x ${room.width.toStringAsFixed(0)}ft (W) x ${room.height.toStringAsFixed(0)}ft (H)',
+                                  style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
+                                ),
+                                const SizedBox(height: AppSizes.p4),
+                                Text(
+                                  'Deductions: ${room.doorsCount} Doors (-${room.doorsCount * 20} sq ft) | ${room.windowsCount} Windows (-${room.windowsCount * 15} sq ft)',
+                                  style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      }),
+                      
+                      const SizedBox(height: AppSizes.p24),
                     ],
                   );
                 },
