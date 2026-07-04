@@ -50,7 +50,7 @@ class VisitLogModel {
       phoneNumber: map['phoneNumber'] ?? '',
       role: map['role'] ?? 'customer',
       visitCount: map['visitCount'] ?? 1,
-      lastVisited: parseDateTime(map['lastVisited']),
+      lastVisited: parseDateTime(map['lastVisited']).toLocal(),
     );
   }
 }
