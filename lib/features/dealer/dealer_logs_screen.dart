@@ -87,14 +87,15 @@ class _DealerLogsScreenState extends ConsumerState<DealerLogsScreen> {
             icon: const Icon(Icons.delete_sweep_outlined),
             tooltip: 'Clear All Logs',
             onPressed: () async {
+              final scaffoldMessenger = ScaffoldMessenger.of(context);
               final confirm = await showDialog<bool>(
                 context: context,
-                builder: (context) => AlertDialog(
+                builder: (dialogContext) => AlertDialog(
                   title: const Text('Clear Visitor Logs'),
                   content: const Text('Are you sure you want to clear all visitor logs? This action cannot be undone.'),
                   actions: [
                     TextButton(
-                      onPressed: () => Navigator.of(context).pop(false),
+                      onPressed: () => Navigator.of(dialogContext).pop(false),
                       child: const Text('Cancel'),
                     ),
                     ElevatedButton(
@@ -102,20 +103,27 @@ class _DealerLogsScreenState extends ConsumerState<DealerLogsScreen> {
                         backgroundColor: AppColors.error,
                         foregroundColor: Colors.white,
                       ),
-                      onPressed: () => Navigator.of(context).pop(true),
+                      onPressed: () => Navigator.of(dialogContext).pop(true),
                       child: const Text('Clear All'),
                     ),
                   ],
                 ),
               );
               if (confirm == true) {
-                await ref.read(logRepositoryProvider).clearVisitLogs();
-                ref.invalidate(visitLogsProvider);
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
+                try {
+                  await ref.read(logRepositoryProvider).clearVisitLogs();
+                  ref.invalidate(visitLogsProvider);
+                  scaffoldMessenger.showSnackBar(
                     const SnackBar(
                       content: Text('Visitor logs cleared successfully.'),
                       backgroundColor: AppColors.success,
+                    ),
+                  );
+                } catch (e) {
+                  scaffoldMessenger.showSnackBar(
+                    SnackBar(
+                      content: Text('Failed to clear logs: $e'),
+                      backgroundColor: AppColors.error,
                     ),
                   );
                 }

@@ -201,6 +201,7 @@ class LogRepository {
       await batch.commit();
     } catch (e) {
       debugPrint('Firestore clearVisitLogs error: $e');
+      rethrow;
     }
   }
 
