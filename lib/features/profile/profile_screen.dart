@@ -9,6 +9,9 @@ import '../../core/widgets/custom_app_bar.dart';
 import '../../core/widgets/glass_card.dart';
 import '../../core/widgets/gradient_button.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/product_provider.dart';
+import '../../providers/review_provider.dart';
+import '../../providers/budget_provider.dart';
 import '../../data/models/user_model.dart';
 import '../../core/utils/helpers.dart';
 
@@ -288,6 +291,35 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
     final isDealer = user.role == 'dealer';
 
+    // Dynamic stats
+    final productsAsync = ref.watch(allProductsProvider);
+    final productsManagedValue = productsAsync.maybeWhen(
+      data: (list) => '${list.length}',
+      orElse: () => '15+',
+    );
+
+    final approvedReviewsAsync = ref.watch(approvedReviewsProvider);
+    final storeRatingValue = approvedReviewsAsync.maybeWhen(
+      data: (reviews) {
+        if (reviews.isEmpty) return '4.8 ★';
+        final avg = reviews.map((r) => r.rating).reduce((a, b) => a + b) / reviews.length;
+        return '${avg.toStringAsFixed(1)} ★';
+      },
+      orElse: () => '4.8 ★',
+    );
+
+    final userReviewsAsync = ref.watch(userReviewsProvider(user.uid));
+    final reviewsWrittenValue = userReviewsAsync.maybeWhen(
+      data: (list) => '${list.length}',
+      orElse: () => '12',
+    );
+
+    final savedBudgetsAsync = ref.watch(savedBudgetsProvider);
+    final savedEstimatesValue = savedBudgetsAsync.maybeWhen(
+      data: (list) => '${list.length}',
+      orElse: () => '4',
+    );
+
     return Scaffold(
       appBar: CustomAppBar(
         title: 'My Profile',
@@ -329,7 +361,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         context: context,
                         icon: isDealer ? Icons.format_paint_outlined : Icons.rate_review_outlined,
                         title: isDealer ? 'Products Managed' : 'Reviews Written',
-                        value: isDealer ? '15+' : '12',
+                        value: isDealer ? productsManagedValue : reviewsWrittenValue,
                       ),
                     ),
                     const SizedBox(width: AppSizes.p16),
@@ -338,7 +370,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         context: context,
                         icon: isDealer ? Icons.analytics_outlined : Icons.calculate_outlined,
                         title: isDealer ? 'Store Rating' : 'Saved Estimates',
-                        value: isDealer ? '4.8 ★' : '4',
+                        value: isDealer ? storeRatingValue : savedEstimatesValue,
                       ),
                     ),
                   ],

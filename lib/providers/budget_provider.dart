@@ -89,3 +89,8 @@ class BudgetNotifier extends StateNotifier<BudgetState> {
 final budgetProvider = StateNotifierProvider<BudgetNotifier, BudgetState>((ref) {
   return BudgetNotifier(ref.watch(budgetRepositoryProvider));
 });
+
+final savedBudgetsProvider = FutureProvider<List<BudgetModel>>((ref) async {
+  final repo = ref.watch(budgetRepositoryProvider);
+  return repo.getSavedBudgets();
+});

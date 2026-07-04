@@ -106,8 +106,36 @@ class BudgetCalculatorScreen extends ConsumerWidget {
             const SizedBox(height: AppSizes.p32),
 
             // 4. Summary
-            if (budgetState.computedBudget != null && budgetState.selectedProduct != null)
+            if (budgetState.computedBudget != null && budgetState.selectedProduct != null) ...[
               BudgetSummary(budget: budgetState.computedBudget!),
+              const SizedBox(height: AppSizes.p24),
+              Center(
+                child: FilledButton.icon(
+                  onPressed: () async {
+                    final repo = ref.read(budgetRepositoryProvider);
+                    await repo.saveBudget(budgetState.computedBudget!);
+                    ref.invalidate(savedBudgetsProvider);
+                    
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Estimate saved successfully!'),
+                          behavior: SnackBarBehavior.floating,
+                        ),
+                      );
+                    }
+                  },
+                  icon: const Icon(Icons.bookmark_added_outlined),
+                  label: const Text('Save Estimate'),
+                  style: FilledButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: AppSizes.p24, vertical: AppSizes.p12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(AppSizes.radiusM),
+                    ),
+                  ),
+                ),
+              ),
+            ],
               
             const SizedBox(height: AppSizes.p32),
           ],
