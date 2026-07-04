@@ -6,6 +6,8 @@ import '../../core/widgets/custom_app_bar.dart';
 import '../../core/widgets/glass_card.dart';
 import '../../providers/review_provider.dart';
 import 'package:intl/intl.dart';
+import '../../data/models/product_model.dart';
+import '../../providers/product_provider.dart';
 
 class ReviewManagementScreen extends ConsumerStatefulWidget {
   const ReviewManagementScreen({super.key});
@@ -33,6 +35,7 @@ class _ReviewManagementScreenState extends ConsumerState<ReviewManagementScreen>
   @override
   Widget build(BuildContext context) {
     final reviewsAsync = ref.watch(allReviewsProvider);
+    final productsAsync = ref.watch(allProductsProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
@@ -123,12 +126,13 @@ class _ReviewManagementScreenState extends ConsumerState<ReviewManagementScreen>
               Expanded(
                 child: reviewsAsync.when(
                   data: (reviews) {
+                    final products = productsAsync.value ?? [];
                     return TabBarView(
                       controller: _tabController,
                       children: [
-                        _buildReviewsList(reviews, 'pending_approval'),
-                        _buildReviewsList(reviews, 'approved'),
-                        _buildReviewsList(reviews, 'all'),
+                        _buildReviewsList(reviews, 'pending_approval', products),
+                        _buildReviewsList(reviews, 'approved', products),
+                        _buildReviewsList(reviews, 'all', products),
                       ],
                     );
                   },
@@ -143,7 +147,7 @@ class _ReviewManagementScreenState extends ConsumerState<ReviewManagementScreen>
     );
   }
 
-  Widget _buildReviewsList(List<dynamic> reviews, String filter) {
+  Widget _buildReviewsList(List<dynamic> reviews, String filter, List<ProductModel> products) {
     var list = reviews;
 
     // Apply search filter
@@ -188,12 +192,12 @@ class _ReviewManagementScreenState extends ConsumerState<ReviewManagementScreen>
       separatorBuilder: (context, index) => const SizedBox(height: AppSizes.p16),
       itemBuilder: (context, index) {
         final review = list[index];
-        return _buildReviewTile(review);
+        return _buildReviewTile(review, products);
       },
     );
   }
 
-  Widget _buildReviewTile(dynamic review) {
+  Widget _buildReviewTile(dynamic review, List<ProductModel> products) {
     final replyController = TextEditingController(text: review.dealerReply ?? '');
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final dateStr = DateFormat('dd MMM yyyy').format(review.createdAt);
@@ -285,8 +289,13 @@ class _ReviewManagementScreenState extends ConsumerState<ReviewManagementScreen>
 
           if (!isApproved) ...[
             Row(
-              mainAxisAlignment: MainAxisAlignment.end,
               children: [
+                TextButton.icon(
+                  onPressed: () => _showFullFormDialog(context, review, products),
+                  icon: const Icon(Icons.assignment_outlined, size: 16),
+                  label: const Text('View Full Form'),
+                ),
+                const Spacer(),
                 OutlinedButton.icon(
                   onPressed: () async {
                     await ref.read(reviewRepositoryProvider).approveReview(review.id, false);
@@ -375,6 +384,16 @@ class _ReviewManagementScreenState extends ConsumerState<ReviewManagementScreen>
             ],
             
             // Reply posting / editing action
+            Row(
+              children: [
+                TextButton.icon(
+                  onPressed: () => _showFullFormDialog(context, review, products),
+                  icon: const Icon(Icons.assignment_outlined, size: 16),
+                  label: const Text('View Full Form'),
+                ),
+              ],
+            ),
+            const SizedBox(height: AppSizes.p8),
             ExpansionTile(
               title: Text(
                 review.dealerReply != null && review.dealerReply!.isNotEmpty ? 'Edit Reply' : 'Post Reply',
@@ -420,6 +439,251 @@ class _ReviewManagementScreenState extends ConsumerState<ReviewManagementScreen>
               ],
             ),
           ],
+        ],
+      ),
+    );
+  }
+
+  void _showFullFormDialog(BuildContext context, dynamic review, List<ProductModel> products) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
+    String getProductName(String? id) {
+      if (id == null || id.isEmpty) return 'Not Selected';
+      final match = products.where((p) => p.id == id).firstOrNull;
+      if (match == null) return id;
+      return '${match.brand} ${match.name}';
+    }
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: isDark ? const Color(0xFF1E1E2E) : Colors.white,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppSizes.radiusXL)),
+          titlePadding: EdgeInsets.zero,
+          contentPadding: const EdgeInsets.all(AppSizes.p24),
+          title: Container(
+            padding: const EdgeInsets.all(AppSizes.p20),
+            decoration: BoxDecoration(
+              color: AppColors.primary.withValues(alpha: 0.1),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(AppSizes.radiusXL)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.assignment_outlined, color: AppColors.primary),
+                const SizedBox(width: AppSizes.p12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Feedback Form Details',
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                      ),
+                      Text(
+                        'Submitted on ${DateFormat('dd MMM yyyy, hh:mm a').format(review.createdAt)}',
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close),
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
+              ],
+            ),
+          ),
+          content: SizedBox(
+            width: 600,
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Section: Personal Details
+                  _buildSectionHeader(context, '1. Personal Details', Icons.person_outline),
+                  const SizedBox(height: AppSizes.p12),
+                  _buildDetailRow('Name', review.userName),
+                  _buildDetailRow('User Type', review.userType?.toUpperCase() ?? 'CUSTOMER'),
+                  _buildDetailRow('Phone Number', review.phone ?? 'N/A'),
+                  _buildDetailRow('Address', review.address ?? 'N/A'),
+                  _buildDetailRow('Profession/Role', review.profession ?? 'N/A'),
+                  _buildDetailRow('Company/Business', review.company ?? 'N/A'),
+                  _buildDetailRow('Verified User', (review.isVerified ?? false) ? 'Yes (Verified customer)' : 'No'),
+
+                  const SizedBox(height: AppSizes.p24),
+                  
+                  // Section: Project & Product Details
+                  _buildSectionHeader(context, '2. Product & Ratings Details', Icons.color_lens_outlined),
+                  const SizedBox(height: AppSizes.p12),
+                  _buildDetailRow('Overall Product', review.productName),
+                  _buildRatingRow('Overall Rating', review.rating),
+                  
+                  if (review.exteriorPaintId != null && review.exteriorPaintId!.isNotEmpty) ...[
+                    _buildDetailRow('Exterior Paint', getProductName(review.exteriorPaintId)),
+                    if (review.exteriorRating != null)
+                      _buildRatingRow('Exterior Rating', review.exteriorRating!),
+                  ],
+                  if (review.interiorPaintId != null && review.interiorPaintId!.isNotEmpty) ...[
+                    _buildDetailRow('Interior Paint', getProductName(review.interiorPaintId)),
+                    if (review.interiorRating != null)
+                      _buildRatingRow('Interior Rating', review.interiorRating!),
+                  ],
+
+                  const SizedBox(height: AppSizes.p24),
+
+                  // Section: Feedback Content
+                  _buildSectionHeader(context, '3. Feedback & Comments', Icons.rate_review_outlined),
+                  const SizedBox(height: AppSizes.p12),
+                  _buildDetailRow('Subject/Title', review.title),
+                  _buildDetailBlock('Feedback Message', review.description),
+                  _buildDetailRow('How did they find us?', review.discoverySource ?? 'N/A'),
+                  _buildDetailBlock('Other Notes / Comments', review.otherNotes ?? 'N/A'),
+
+                  const SizedBox(height: AppSizes.p24),
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Close'),
+            ),
+            if (!(review.isApproved ?? false)) ...[
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.error,
+                  foregroundColor: Colors.white,
+                ),
+                onPressed: () async {
+                  await ref.read(reviewRepositoryProvider).approveReview(review.id, false);
+                  ref.invalidate(allReviewsProvider);
+                  if (context.mounted) {
+                    Navigator.of(context).pop();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Feedback rejected.'), backgroundColor: AppColors.error),
+                    );
+                  }
+                },
+                child: const Text('Reject'),
+              ),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.success,
+                  foregroundColor: Colors.white,
+                ),
+                onPressed: () async {
+                  await ref.read(reviewRepositoryProvider).approveReview(review.id, true);
+                  ref.invalidate(allReviewsProvider);
+                  if (context.mounted) {
+                    Navigator.of(context).pop();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Feedback approved! Live on site.'), backgroundColor: AppColors.success),
+                    );
+                  }
+                },
+                child: const Text('Approve & Publish'),
+              ),
+            ],
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildSectionHeader(BuildContext context, String title, IconData icon) {
+    return Row(
+      children: [
+        Icon(icon, size: 18, color: AppColors.primary),
+        const SizedBox(width: 8),
+        Text(
+          title,
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: AppColors.primary,
+              ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDetailRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 140,
+            child: Text(
+              label,
+              style: const TextStyle(fontWeight: FontWeight.w600, color: Colors.grey, fontSize: 13),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRatingRow(String label, double rating) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 140,
+            child: Text(
+              label,
+              style: const TextStyle(fontWeight: FontWeight.w600, color: Colors.grey, fontSize: 13),
+            ),
+          ),
+          Row(
+            children: List.generate(
+              5,
+              (i) => Icon(
+                i < rating ? Icons.star_rounded : Icons.star_border_rounded,
+                size: 14,
+                color: Colors.amber,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDetailBlock(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(fontWeight: FontWeight.w600, color: Colors.grey, fontSize: 13),
+          ),
+          const SizedBox(height: 4),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.grey.withValues(alpha: 0.05),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.grey.withValues(alpha: 0.1)),
+            ),
+            child: Text(
+              value,
+              style: const TextStyle(fontSize: 13, height: 1.4),
+            ),
+          ),
         ],
       ),
     );
