@@ -161,67 +161,200 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   void _showResetPasswordDialog() {
-    final emailResetController = TextEditingController(
-      text: _isDealerTab ? _emailController.text : '',
-    );
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Reset Password'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text('Enter your registered email below to receive a password reset link.'),
-              const SizedBox(height: 16),
-              TextField(
-                controller: emailResetController,
-                decoration: const InputDecoration(
-                  labelText: 'Email Address',
-                  hintText: 'Enter your Email address',
+    if (_isDealerTab) {
+      // Admin/Dealer password reset via email
+      final emailResetController = TextEditingController(text: _emailController.text);
+      showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: const Text('Reset Password'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('Enter your registered email below to receive a password reset link.'),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: emailResetController,
+                  decoration: const InputDecoration(
+                    labelText: 'Email Address',
+                    hintText: 'Enter your Email address',
+                  ),
                 ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: () async {
+                  final email = emailResetController.text.trim();
+                  if (email.isEmpty) return;
+                  
+                  try {
+                    await ref.read(authRepositoryProvider).sendPasswordReset(email);
+                    if (context.mounted) {
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('A password reset link has been sent to $email.'),
+                          backgroundColor: AppColors.success,
+                        ),
+                      );
+                    }
+                  } catch (e) {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(e.toString().replaceAll('Exception: ', '')),
+                          backgroundColor: AppColors.error,
+                        ),
+                      );
+                    }
+                  }
+                },
+                child: const Text('Send Reset Link'),
               ),
             ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                final email = emailResetController.text.trim();
-                if (email.isEmpty) return;
-                
-                try {
-                  await ref.read(authRepositoryProvider).sendPasswordReset(email);
-                  if (context.mounted) {
-                    Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('A password reset link has been sent to $email.'),
-                        backgroundColor: AppColors.success,
+          );
+        },
+      );
+    } else {
+      // Customer password reset via phone & OTP
+      final formKey = GlobalKey<FormState>();
+      final phoneResetController = TextEditingController(text: _phoneController.text);
+      final otpResetController = TextEditingController();
+      final newPasswordController = TextEditingController();
+      final confirmPasswordController = TextEditingController();
+
+      showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: const Text('Reset Password'),
+            content: Form(
+              key: formKey,
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Enter your mobile number, verify with OTP code, and set your new password.'),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: phoneResetController,
+                      decoration: const InputDecoration(
+                        labelText: 'Mobile Number',
+                        border: OutlineInputBorder(),
                       ),
-                    );
-                  }
-                } catch (e) {
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(e.toString().replaceAll('Exception: ', '')),
-                        backgroundColor: AppColors.error,
+                      keyboardType: TextInputType.phone,
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'Please enter mobile number';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: otpResetController,
+                      decoration: const InputDecoration(
+                        labelText: 'Verification OTP (enter 123456)',
+                        border: OutlineInputBorder(),
                       ),
-                    );
-                  }
-                }
-              },
-              child: const Text('Send Reset Link'),
+                      keyboardType: TextInputType.number,
+                      validator: (value) {
+                        if (value != '123456') {
+                          return 'Enter 123456 to verify';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: newPasswordController,
+                      decoration: const InputDecoration(
+                        labelText: 'New Password',
+                        border: OutlineInputBorder(),
+                      ),
+                      obscureText: true,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter new password';
+                        }
+                        if (value.length < 6) {
+                          return 'Password must be at least 6 characters';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: confirmPasswordController,
+                      decoration: const InputDecoration(
+                        labelText: 'Confirm New Password',
+                        border: OutlineInputBorder(),
+                      ),
+                      obscureText: true,
+                      validator: (value) {
+                        if (value != newPasswordController.text) {
+                          return 'Passwords do not match';
+                        }
+                        return null;
+                      },
+                    ),
+                  ],
+                ),
+              ),
             ),
-          ],
-        );
-      },
-    );
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: () async {
+                  if (formKey.currentState?.validate() == true) {
+                    final messenger = ScaffoldMessenger.of(context);
+                    final navigator = Navigator.of(context);
+                    
+                    final success = await ref.read(authStateProvider.notifier).resetPasswordWithPhone(
+                      phoneResetController.text.trim(),
+                      otpResetController.text.trim(),
+                      newPasswordController.text,
+                    );
+                    
+                    if (success) {
+                      messenger.showSnackBar(
+                        const SnackBar(
+                          content: Text('Password updated successfully! You can now log in.'),
+                          backgroundColor: AppColors.success,
+                          behavior: SnackBarBehavior.floating,
+                        ),
+                      );
+                      navigator.pop();
+                    } else {
+                      final err = ref.read(authStateProvider).error ?? 'Failed to update password';
+                      messenger.showSnackBar(
+                        SnackBar(
+                          content: Text(err),
+                          backgroundColor: AppColors.error,
+                          behavior: SnackBarBehavior.floating,
+                        ),
+                      );
+                    }
+                  }
+                },
+                child: const Text('Reset Password'),
+              ),
+            ],
+          );
+        },
+      );
+    }
   }
 
   Future<void> _handleGoogleSignIn() async {

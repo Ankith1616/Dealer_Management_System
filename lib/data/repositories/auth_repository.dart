@@ -484,6 +484,52 @@ class AuthRepository {
     }
   }
 
+  Future<void> resetPasswordWithPhone(String phoneNumber, String otp, String newPassword) async {
+    final cleanPhone = phoneNumber.replaceAll(RegExp(r'\D'), '');
+    
+    // In mock mode, check OTP first
+    if (otp != '123456') {
+      throw Exception('Wrong verification code (OTP)');
+    }
+
+    // Verify if the account exists in Firestore mock_users or local memory
+    final firestore = _firestore;
+    UserModel? user;
+    if (firestore != null) {
+      try {
+        final doc = await firestore.collection('mock_users').doc(cleanPhone).get();
+        if (doc.exists && doc.data() != null) {
+          final data = doc.data()!;
+          user = UserModel.fromMap(data['user'] as Map<String, dynamic>);
+        }
+      } catch (e) {
+        debugPrint('Firestore resetPasswordWithPhone search error: $e');
+      }
+    }
+
+    if (user == null && _customerUsers.containsKey(cleanPhone)) {
+      user = _customerUsers[cleanPhone];
+    }
+
+    if (user == null) {
+      throw Exception('Account with this phone number does not exist');
+    }
+
+    // Update password
+    _customerPasswords[cleanPhone] = newPassword;
+    if (firestore != null) {
+      try {
+        await firestore.collection('mock_users').doc(cleanPhone).set({
+          'user': user.toMap(),
+          'password': newPassword,
+        });
+      } catch (e) {
+        debugPrint('Firestore resetPasswordWithPhone save error: $e');
+        throw Exception('Failed to update password in database');
+      }
+    }
+  }
+
   Future<void> logout() async {
     await _firebaseAuth.signOut();
     _currentUser = null;
