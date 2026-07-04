@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/constants/app_sizes.dart';
 import '../../core/widgets/custom_app_bar.dart';
 import '../../providers/budget_provider.dart';
+import '../../providers/auth_provider.dart';
 import 'widgets/room_input_card.dart';
 import 'widgets/paint_selector.dart';
 import 'widgets/budget_summary.dart';
@@ -113,7 +114,9 @@ class BudgetCalculatorScreen extends ConsumerWidget {
                 child: FilledButton.icon(
                   onPressed: () async {
                     final repo = ref.read(budgetRepositoryProvider);
-                    await repo.saveBudget(budgetState.computedBudget!);
+                    final currentUser = ref.read(currentUserProvider);
+                    final budgetToSave = budgetState.computedBudget!.copyWith(userId: currentUser?.uid);
+                    await repo.saveBudget(budgetToSave);
                     ref.invalidate(savedBudgetsProvider);
                     
                     if (context.mounted) {

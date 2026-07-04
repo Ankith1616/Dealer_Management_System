@@ -268,6 +268,21 @@ class ReviewRepository {
     }
   }
 
+  Future<void> deleteReview(String reviewId) async {
+    // 1. Update local cache
+    _localReviews.removeWhere((r) => r.id == reviewId);
+
+    final db = _firestore;
+    if (db == null) {
+      return;
+    }
+    try {
+      await db.collection('reviews').doc(reviewId).delete();
+    } catch (e) {
+      debugPrint('Firestore deleteReview error: $e');
+    }
+  }
+
   Future<void> clearAllReviews() async {
     _localReviews.clear();
     final db = _firestore;

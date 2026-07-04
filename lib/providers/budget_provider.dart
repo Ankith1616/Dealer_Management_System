@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/models/budget_model.dart';
 import '../data/models/product_model.dart';
 import '../data/repositories/budget_repository.dart';
+import 'auth_provider.dart';
 import 'package:uuid/uuid.dart';
 
 final budgetRepositoryProvider = Provider((ref) => BudgetRepository());
@@ -92,5 +93,7 @@ final budgetProvider = StateNotifierProvider<BudgetNotifier, BudgetState>((ref) 
 
 final savedBudgetsProvider = FutureProvider<List<BudgetModel>>((ref) async {
   final repo = ref.watch(budgetRepositoryProvider);
-  return repo.getSavedBudgets();
+  final authState = ref.watch(authStateProvider);
+  final userId = authState.user?.uid;
+  return repo.getSavedBudgets(userId: userId);
 });

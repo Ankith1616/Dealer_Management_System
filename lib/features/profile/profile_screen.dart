@@ -962,20 +962,61 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                         Row(
                                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                           children: [
-                                            Text(
-                                              review.productName,
-                                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                                            ),
-                                            Container(
-                                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                              decoration: BoxDecoration(
-                                                color: statusColor.withValues(alpha: 0.1),
-                                                borderRadius: BorderRadius.circular(AppSizes.radiusS),
-                                              ),
+                                            Expanded(
                                               child: Text(
-                                                statusText,
-                                                style: TextStyle(color: statusColor, fontSize: 11, fontWeight: FontWeight.bold),
+                                                review.productName,
+                                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                                overflow: TextOverflow.ellipsis,
                                               ),
+                                            ),
+                                            Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Container(
+                                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                                  decoration: BoxDecoration(
+                                                    color: statusColor.withValues(alpha: 0.1),
+                                                    borderRadius: BorderRadius.circular(AppSizes.radiusS),
+                                                  ),
+                                                  child: Text(
+                                                    statusText,
+                                                    style: TextStyle(color: statusColor, fontSize: 11, fontWeight: FontWeight.bold),
+                                                  ),
+                                                ),
+                                                const SizedBox(width: 8),
+                                                IconButton(
+                                                  icon: const Icon(Icons.delete_outline, color: AppColors.error, size: 20),
+                                                  padding: EdgeInsets.zero,
+                                                  constraints: const BoxConstraints(),
+                                                  onPressed: () async {
+                                                    final confirm = await showDialog<bool>(
+                                                      context: context,
+                                                      builder: (context) => AlertDialog(
+                                                        title: const Text('Delete Feedback'),
+                                                        content: const Text('Are you sure you want to delete this feedback?'),
+                                                        actions: [
+                                                          TextButton(
+                                                            onPressed: () => Navigator.pop(context, false),
+                                                            child: const Text('Cancel'),
+                                                          ),
+                                                          ElevatedButton(
+                                                            onPressed: () => Navigator.pop(context, true),
+                                                            style: ElevatedButton.styleFrom(
+                                                              backgroundColor: AppColors.error,
+                                                              foregroundColor: Colors.white,
+                                                            ),
+                                                            child: const Text('Delete'),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    );
+                                                    if (confirm == true) {
+                                                      await ref.read(reviewRepositoryProvider).deleteReview(review.id);
+                                                      ref.invalidate(allReviewsProvider);
+                                                    }
+                                                  },
+                                                ),
+                                              ],
                                             ),
                                           ],
                                         ),
