@@ -24,3 +24,41 @@ UserModel? getUserProfileImpl(String uid) {
     return null;
   }
 }
+
+void saveMockUsersImpl(Map<String, UserModel> users) {
+  final Map<String, dynamic> data = {};
+  users.forEach((key, value) {
+    data[key] = value.toMap();
+  });
+  html.window.localStorage['mock_users_db'] = json.encode(data);
+}
+
+Map<String, UserModel> getMockUsersImpl() {
+  final data = html.window.localStorage['mock_users_db'];
+  if (data == null) return {};
+  try {
+    final decoded = json.decode(data) as Map<String, dynamic>;
+    final Map<String, UserModel> result = {};
+    decoded.forEach((key, value) {
+      result[key] = UserModel.fromMap(value as Map<String, dynamic>);
+    });
+    return result;
+  } catch (e) {
+    return {};
+  }
+}
+
+void saveMockPasswordsImpl(Map<String, String> passwords) {
+  html.window.localStorage['mock_passwords_db'] = json.encode(passwords);
+}
+
+Map<String, String> getMockPasswordsImpl() {
+  final data = html.window.localStorage['mock_passwords_db'];
+  if (data == null) return {};
+  try {
+    final decoded = json.decode(data) as Map<String, dynamic>;
+    return decoded.map((key, value) => MapEntry(key, value.toString()));
+  } catch (e) {
+    return {};
+  }
+}

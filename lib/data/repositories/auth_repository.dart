@@ -33,7 +33,19 @@ class AuthRepository {
 
   AuthRepository({fb_auth.FirebaseAuth? firebaseAuth})
       : _firebaseAuth = firebaseAuth ?? fb_auth.FirebaseAuth.instance {
+    _loadMockUsersFromStorage();
     _initCurrentUser();
+  }
+
+  void _loadMockUsersFromStorage() {
+    final storedUsers = LocalStorageHelper.getMockUsers();
+    if (storedUsers.isNotEmpty) {
+      _customerUsers.addAll(storedUsers);
+    }
+    final storedPasswords = LocalStorageHelper.getMockPasswords();
+    if (storedPasswords.isNotEmpty) {
+      _customerPasswords.addAll(storedPasswords);
+    }
   }
   
   UserModel? get currentUser => _currentUser;
@@ -153,6 +165,25 @@ class AuthRepository {
     } else {
       // Mock login for customer
       await Future.delayed(const Duration(milliseconds: 500)); // Simulate network
+      
+      final firestore = _firestore;
+      if (firestore != null) {
+        try {
+          final doc = await firestore.collection('mock_users').doc(identifier).get();
+          if (doc.exists && doc.data() != null) {
+            final data = doc.data()!;
+            final mockUser = UserModel.fromMap(data['user'] as Map<String, dynamic>);
+            final mockPassword = data['password'] as String;
+            _customerUsers[identifier] = mockUser;
+            _customerPasswords[identifier] = mockPassword;
+            LocalStorageHelper.saveMockUsers(_customerUsers);
+            LocalStorageHelper.saveMockPasswords(_customerPasswords);
+          }
+        } catch (e) {
+          debugPrint('Firestore mock login sync error: $e');
+        }
+      }
+
       if (!_customerUsers.containsKey(identifier)) {
         throw Exception('User does not exist');
       }
@@ -160,32 +191,62 @@ class AuthRepository {
         throw Exception('Wrong credentials');
       }
       _currentUser = _customerUsers[identifier];
+      if (_currentUser != null) {
+        LocalStorageHelper.saveUserProfile(_currentUser!.uid, _currentUser!);
+      }
       return _currentUser!;
     }
   }
 
   Future<UserModel> register(String phoneNumber, String? email, String password, String name, String role) async {
     await Future.delayed(const Duration(milliseconds: 500));
+    final cleanPhone = phoneNumber.replaceAll(RegExp(r'\D'), '');
     
-    if (_customerUsers.containsKey(phoneNumber)) {
+    bool exists = _customerUsers.containsKey(cleanPhone);
+    if (!exists) {
+      final firestore = _firestore;
+      if (firestore != null) {
+        try {
+          final doc = await firestore.collection('mock_users').doc(cleanPhone).get();
+          exists = doc.exists;
+        } catch (_) {}
+      }
+    }
+    
+    if (exists) {
       throw Exception('Account already exists');
     }
     
-    final emailForAvatar = email ?? phoneNumber;
+    final emailForAvatar = email ?? cleanPhone;
     final newUser = UserModel(
       uid: const Uuid().v4(),
       email: email,
-      phoneNumber: phoneNumber,
+      phoneNumber: cleanPhone,
       displayName: name,
       role: role,
       photoUrl: 'https://i.pravatar.cc/150?u=${emailForAvatar.hashCode}',
       createdAt: DateTime.now(),
     );
     
-    _customerPasswords[phoneNumber] = password;
-    _customerUsers[phoneNumber] = newUser;
-    _currentUser = newUser;
+    _customerPasswords[cleanPhone] = password;
+    _customerUsers[cleanPhone] = newUser;
     
+    LocalStorageHelper.saveMockUsers(_customerUsers);
+    LocalStorageHelper.saveMockPasswords(_customerPasswords);
+
+    final firestore = _firestore;
+    if (firestore != null) {
+      try {
+        await firestore.collection('mock_users').doc(cleanPhone).set({
+          'user': newUser.toMap(),
+          'password': password,
+        });
+      } catch (e) {
+        debugPrint('Firestore mock register error: $e');
+      }
+    }
+    
+    _currentUser = newUser;
     return _currentUser!;
   }
 

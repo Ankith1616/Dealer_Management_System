@@ -18,4 +18,20 @@ class LocalStorageHelper {
   static UserModel? getUserProfile(String uid) {
     return getUserProfileImpl(uid);
   }
+
+  static void saveMockUsers(Map<String, UserModel> users) {
+    saveMockUsersImpl(users);
+  }
+
+  static Map<String, UserModel> getMockUsers() {
+    return getMockUsersImpl();
+  }
+
+  static void saveMockPasswords(Map<String, String> passwords) {
+    saveMockPasswordsImpl(passwords);
+  }
+
+  static Map<String, String> getMockPasswords() {
+    return getMockPasswordsImpl();
+  }
 }

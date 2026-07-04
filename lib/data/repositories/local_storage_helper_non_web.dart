@@ -15,3 +15,19 @@ void saveUserProfileImpl(String uid, UserModel user) {
 UserModel? getUserProfileImpl(String uid) {
   return null;
 }
+
+void saveMockUsersImpl(Map<String, UserModel> users) {
+  // No-op on non-web platforms
+}
+
+Map<String, UserModel> getMockUsersImpl() {
+  return {};
+}
+
+void saveMockPasswordsImpl(Map<String, String> passwords) {
+  // No-op on non-web platforms
+}
+
+Map<String, String> getMockPasswordsImpl() {
+  return {};
+}
