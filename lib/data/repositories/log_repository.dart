@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/user_model.dart';
 import '../models/visit_log_model.dart';
+import 'local_storage_helper.dart';
 
 final logRepositoryProvider = Provider((ref) => LogRepository());
 
@@ -13,6 +14,12 @@ final visitLogsProvider = StreamProvider.autoDispose<List<VisitLogModel>>((ref) 
 
 class LogRepository {
   static final _localLogsController = StreamController<List<VisitLogModel>>.broadcast();
+
+  LogRepository() {
+    if (LocalStorageHelper.getClearedFlag()) {
+      _localLogs.clear();
+    }
+  }
 
   void _notifyLocalLogs() {
     final list = List<VisitLogModel>.from(_localLogs);
@@ -109,6 +116,7 @@ class LogRepository {
 
   Future<void> logVisit(UserModel user) async {
     final now = DateTime.now();
+    LocalStorageHelper.saveClearedFlag(false);
 
     // 1. Calculate next visitCount locally
     final userLogs = _localLogs.where((log) => log.uid == user.uid);
@@ -188,6 +196,7 @@ class LogRepository {
   Future<void> clearVisitLogs() async {
     _localLogs.clear();
     _notifyLocalLogs();
+    LocalStorageHelper.saveClearedFlag(true);
     final firestore = _firestore;
     if (firestore == null) {
       return;
