@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -11,6 +12,14 @@ final visitLogsProvider = StreamProvider.autoDispose<List<VisitLogModel>>((ref) 
 });
 
 class LogRepository {
+  static final _localLogsController = StreamController<List<VisitLogModel>>.broadcast();
+
+  void _notifyLocalLogs() {
+    final list = List<VisitLogModel>.from(_localLogs);
+    list.sort((a, b) => b.lastVisited.compareTo(a.lastVisited));
+    _localLogsController.add(list.take(100).toList());
+  }
+
   FirebaseFirestore? get _firestore {
     try {
       return FirebaseFirestore.instance;
@@ -125,6 +134,7 @@ class LogRepository {
     if (_localLogs.length > 100) {
       _localLogs.removeRange(100, _localLogs.length);
     }
+    _notifyLocalLogs();
 
     // 2. Sync to Firestore (asynchronous, doesn't block the UI)
     final firestore = _firestore;
@@ -177,6 +187,7 @@ class LogRepository {
 
   Future<void> clearVisitLogs() async {
     _localLogs.clear();
+    _notifyLocalLogs();
     final firestore = _firestore;
     if (firestore == null) {
       return;
@@ -196,9 +207,21 @@ class LogRepository {
   Stream<List<VisitLogModel>> getVisitLogs() {
     final firestore = _firestore;
     if (firestore == null) {
+      final controller = StreamController<List<VisitLogModel>>();
       final list = List<VisitLogModel>.from(_localLogs);
       list.sort((a, b) => b.lastVisited.compareTo(a.lastVisited));
-      return Stream.value(list.take(100).toList());
+      controller.add(list.take(100).toList());
+      
+      final subscription = _localLogsController.stream.listen((updatedList) {
+        controller.add(updatedList);
+      });
+      
+      controller.onCancel = () {
+        subscription.cancel();
+        controller.close();
+      };
+      
+      return controller.stream;
     }
     // Listen to Firestore, and merge with the local logs (avoiding duplicates)
     return firestore

@@ -26,6 +26,7 @@ class ReviewModel {
   final String? otherNotes;
   final String? userType;
   final bool? isApproved;
+  final bool? isRejected;
 
   ReviewModel({
     required this.id,
@@ -54,6 +55,7 @@ class ReviewModel {
     this.otherNotes,
     this.userType,
     this.isApproved = false,
+    this.isRejected = false,
   });
 
   Map<String, dynamic> toMap() {
@@ -84,6 +86,7 @@ class ReviewModel {
       'otherNotes': otherNotes,
       'userType': userType,
       'isApproved': isApproved,
+      'isRejected': isRejected,
     };
   }
 
@@ -115,6 +118,7 @@ class ReviewModel {
       otherNotes: map['otherNotes'],
       userType: map['userType'],
       isApproved: map['isApproved'] ?? false,
+      isRejected: map['isRejected'] ?? false,
     );
   }
 
@@ -145,6 +149,7 @@ class ReviewModel {
     String? otherNotes,
     String? userType,
     bool? isApproved,
+    bool? isRejected,
   }) {
     return ReviewModel(
       id: id ?? this.id,
@@ -173,6 +178,7 @@ class ReviewModel {
       otherNotes: otherNotes ?? this.otherNotes,
       userType: userType ?? this.userType,
       isApproved: isApproved ?? this.isApproved,
+      isRejected: isRejected ?? this.isRejected,
     );
   }
 }

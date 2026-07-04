@@ -23,7 +23,7 @@ class _ReviewManagementScreenState extends ConsumerState<ReviewManagementScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 4, vsync: this);
   }
 
   @override
@@ -102,6 +102,7 @@ class _ReviewManagementScreenState extends ConsumerState<ReviewManagementScreen>
                 tabs: const [
                   Tab(text: 'Pending Approvals'),
                   Tab(text: 'Approved Feedback'),
+                  Tab(text: 'Rejected / Deleted'),
                   Tab(text: 'All Feedback'),
                 ],
               ),
@@ -132,6 +133,7 @@ class _ReviewManagementScreenState extends ConsumerState<ReviewManagementScreen>
                       children: [
                         _buildReviewsList(reviews, 'pending_approval', products),
                         _buildReviewsList(reviews, 'approved', products),
+                        _buildReviewsList(reviews, 'rejected', products),
                         _buildReviewsList(reviews, 'all', products),
                       ],
                     );
@@ -162,9 +164,11 @@ class _ReviewManagementScreenState extends ConsumerState<ReviewManagementScreen>
 
     // Apply status filter
     if (filter == 'pending_approval') {
-      list = list.where((r) => r.isApproved == false).toList();
+      list = list.where((r) => (r.isApproved ?? false) == false && (r.isRejected ?? false) == false).toList();
     } else if (filter == 'approved') {
-      list = list.where((r) => r.isApproved == true).toList();
+      list = list.where((r) => (r.isApproved ?? false) == true && (r.isRejected ?? false) == false).toList();
+    } else if (filter == 'rejected') {
+      list = list.where((r) => (r.isRejected ?? false) == true).toList();
     }
 
     if (list.isEmpty) {
@@ -209,7 +213,33 @@ class _ReviewManagementScreenState extends ConsumerState<ReviewManagementScreen>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Moderation Warning Banner
-          if (!isApproved) ...[
+          if (review.isRejected ?? false) ...[
+            Container(
+              margin: const EdgeInsets.only(bottom: AppSizes.p12),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: AppColors.error.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(AppSizes.radiusS),
+                border: Border.all(color: AppColors.error.withValues(alpha: 0.2)),
+              ),
+              child: Row(
+                children: const [
+                  Icon(Icons.cancel_outlined, color: AppColors.error, size: 14),
+                  SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Rejected / Deleted (Hidden from website)',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: AppColors.error,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ] else if (!isApproved) ...[
             Container(
               margin: const EdgeInsets.only(bottom: AppSizes.p12),
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -287,7 +317,7 @@ class _ReviewManagementScreenState extends ConsumerState<ReviewManagementScreen>
           
           const Divider(height: AppSizes.p24),
 
-          if (!isApproved) ...[
+          if (review.isRejected ?? false) ...[
             Row(
               children: [
                 TextButton.icon(
@@ -295,51 +325,36 @@ class _ReviewManagementScreenState extends ConsumerState<ReviewManagementScreen>
                   icon: const Icon(Icons.assignment_outlined, size: 16),
                   label: const Text('View Full Form'),
                 ),
-                const Spacer(),
-                OutlinedButton.icon(
-                  onPressed: () async {
-                    await ref.read(reviewRepositoryProvider).approveReview(review.id, false);
-                    ref.invalidate(allReviewsProvider);
-                    if (mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Feedback rejected and deleted.'),
-                          backgroundColor: AppColors.error,
-                        ),
-                      );
-                    }
-                  },
-                  icon: const Icon(Icons.cancel_outlined, size: 16),
-                  label: const Text('Reject'),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: AppColors.error,
-                    side: const BorderSide(color: AppColors.error),
-                  ),
-                ),
                 const SizedBox(width: AppSizes.p12),
+                TextButton.icon(
+                  onPressed: () => _showEditDialog(context, review),
+                  icon: const Icon(Icons.edit_outlined, size: 16, color: AppColors.primary),
+                  label: const Text('Edit Feedback', style: TextStyle(color: AppColors.primary)),
+                ),
+                const Spacer(),
                 ElevatedButton.icon(
                   onPressed: () async {
-                    await ref.read(reviewRepositoryProvider).approveReview(review.id, true);
+                    await ref.read(reviewRepositoryProvider).revokeReview(review.id);
                     ref.invalidate(allReviewsProvider);
                     if (mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                          content: Text('Feedback approved! Live on site.'),
+                          content: Text('Feedback revoked and returned to pending.'),
                           backgroundColor: AppColors.success,
                         ),
                       );
                     }
                   },
-                  icon: const Icon(Icons.check_circle_outline, size: 16),
-                  label: const Text('Approve & Publish'),
+                  icon: const Icon(Icons.undo_rounded, size: 16),
+                  label: const Text('Revoke / Restore'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.success,
+                    backgroundColor: AppColors.primary,
                     foregroundColor: Colors.white,
                   ),
                 ),
               ],
             ),
-          ] else ...[
+          ] else if (isApproved) ...[
             // Dealer reply field / display
             if (review.dealerReply != null && review.dealerReply!.isNotEmpty) ...[
               Container(
@@ -383,13 +398,39 @@ class _ReviewManagementScreenState extends ConsumerState<ReviewManagementScreen>
               const SizedBox(height: AppSizes.p16),
             ],
             
-            // Reply posting / editing action
             Row(
               children: [
                 TextButton.icon(
                   onPressed: () => _showFullFormDialog(context, review, products),
                   icon: const Icon(Icons.assignment_outlined, size: 16),
                   label: const Text('View Full Form'),
+                ),
+                const SizedBox(width: AppSizes.p12),
+                TextButton.icon(
+                  onPressed: () => _showEditDialog(context, review),
+                  icon: const Icon(Icons.edit_outlined, size: 16, color: AppColors.primary),
+                  label: const Text('Edit Feedback', style: TextStyle(color: AppColors.primary)),
+                ),
+                const Spacer(),
+                OutlinedButton.icon(
+                  onPressed: () async {
+                    await ref.read(reviewRepositoryProvider).approveReview(review.id, false);
+                    ref.invalidate(allReviewsProvider);
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Feedback deleted.'),
+                          backgroundColor: AppColors.error,
+                        ),
+                      );
+                    }
+                  },
+                  icon: const Icon(Icons.delete_outline, size: 16),
+                  label: const Text('Delete'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.error,
+                    side: const BorderSide(color: AppColors.error),
+                  ),
                 ),
               ],
             ),
@@ -418,29 +459,187 @@ class _ReviewManagementScreenState extends ConsumerState<ReviewManagementScreen>
                     const SizedBox(width: AppSizes.p12),
                     ElevatedButton(
                       onPressed: () async {
-                        if (replyController.text.trim().isEmpty) return;
-                        await ref.read(reviewRepositoryProvider).replyToReview(
-                              review.id,
-                              replyController.text.trim(),
+                        if (replyController.text.trim().isNotEmpty) {
+                          await ref.read(reviewRepositoryProvider).replyToReview(review.id, replyController.text.trim());
+                          ref.invalidate(allReviewsProvider);
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Reply posted successfully.')),
                             );
-                        ref.invalidate(allReviewsProvider);
-                        if (!mounted) return;
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Reply posted successfully!'),
-                            backgroundColor: AppColors.success,
-                          ),
-                        );
+                          }
+                        }
                       },
-                      child: const Text('Save'),
+                      child: const Text('Submit'),
                     ),
                   ],
+                ),
+                const SizedBox(height: AppSizes.p16),
+              ],
+            ),
+          ] else ...[
+            Row(
+              children: [
+                TextButton.icon(
+                  onPressed: () => _showFullFormDialog(context, review, products),
+                  icon: const Icon(Icons.assignment_outlined, size: 16),
+                  label: const Text('View Full Form'),
+                ),
+                const SizedBox(width: AppSizes.p12),
+                TextButton.icon(
+                  onPressed: () => _showEditDialog(context, review),
+                  icon: const Icon(Icons.edit_outlined, size: 16, color: AppColors.primary),
+                  label: const Text('Edit Feedback', style: TextStyle(color: AppColors.primary)),
+                ),
+                const Spacer(),
+                OutlinedButton.icon(
+                  onPressed: () async {
+                    await ref.read(reviewRepositoryProvider).approveReview(review.id, false);
+                    ref.invalidate(allReviewsProvider);
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Feedback rejected.'),
+                          backgroundColor: AppColors.error,
+                        ),
+                      );
+                    }
+                  },
+                  icon: const Icon(Icons.cancel_outlined, size: 16),
+                  label: const Text('Reject'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.error,
+                    side: const BorderSide(color: AppColors.error),
+                  ),
+                ),
+                const SizedBox(width: AppSizes.p12),
+                ElevatedButton.icon(
+                  onPressed: () async {
+                    await ref.read(reviewRepositoryProvider).approveReview(review.id, true);
+                    ref.invalidate(allReviewsProvider);
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Feedback approved! Live on site.'),
+                          backgroundColor: AppColors.success,
+                        ),
+                      );
+                    }
+                  },
+                  icon: const Icon(Icons.check_circle_outline, size: 16),
+                  label: const Text('Approve & Publish'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.success,
+                    foregroundColor: Colors.white,
+                  ),
                 ),
               ],
             ),
           ],
         ],
       ),
+    );
+  }
+
+  void _showEditDialog(BuildContext context, dynamic review) {
+    final titleController = TextEditingController(text: review.title);
+    final descController = TextEditingController(text: review.description);
+    double currentRating = review.rating.toDouble();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              backgroundColor: isDark ? const Color(0xFF1E1E2E) : Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppSizes.radiusL)),
+              title: const Text('Edit Feedback Content', style: TextStyle(fontWeight: FontWeight.bold)),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Rating', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: List.generate(
+                        5,
+                        (index) => IconButton(
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                          icon: Icon(
+                            index < currentRating ? Icons.star_rounded : Icons.star_border_rounded,
+                            color: Colors.amber,
+                            size: 32,
+                          ),
+                          onPressed: () {
+                            setDialogState(() {
+                              currentRating = index + 1.0;
+                            });
+                          },
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    const Text('Subject/Title', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: titleController,
+                      decoration: const InputDecoration(
+                        hintText: 'Enter review title...',
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    const Text('Feedback Message', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: descController,
+                      maxLines: 4,
+                      decoration: const InputDecoration(
+                        hintText: 'Enter detailed feedback...',
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('Cancel'),
+                ),
+                ElevatedButton(
+                  onPressed: () async {
+                    if (titleController.text.trim().isEmpty || descController.text.trim().isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Please fill all fields')),
+                      );
+                      return;
+                    }
+                    await ref.read(reviewRepositoryProvider).updateReview(
+                          review.id,
+                          title: titleController.text.trim(),
+                          description: descController.text.trim(),
+                          rating: currentRating,
+                        );
+                    ref.invalidate(allReviewsProvider);
+                    if (context.mounted) {
+                      Navigator.of(context).pop();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Feedback updated successfully!'),
+                          backgroundColor: AppColors.success,
+                        ),
+                      );
+                    }
+                  },
+                  child: const Text('Save Changes'),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 
@@ -550,7 +749,45 @@ class _ReviewManagementScreenState extends ConsumerState<ReviewManagementScreen>
               onPressed: () => Navigator.of(context).pop(),
               child: const Text('Close'),
             ),
-            if (!(review.isApproved ?? false)) ...[
+            if (review.isRejected ?? false) ...[
+              ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
+                ),
+                onPressed: () async {
+                  await ref.read(reviewRepositoryProvider).revokeReview(review.id);
+                  ref.invalidate(allReviewsProvider);
+                  if (context.mounted) {
+                    Navigator.of(context).pop();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Feedback revoked and returned to pending.'), backgroundColor: AppColors.success),
+                    );
+                  }
+                },
+                icon: const Icon(Icons.undo_rounded, size: 16),
+                label: const Text('Revoke / Restore'),
+              ),
+            ] else if (review.isApproved ?? false) ...[
+              ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.error,
+                  foregroundColor: Colors.white,
+                ),
+                onPressed: () async {
+                  await ref.read(reviewRepositoryProvider).approveReview(review.id, false);
+                  ref.invalidate(allReviewsProvider);
+                  if (context.mounted) {
+                    Navigator.of(context).pop();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Feedback deleted.'), backgroundColor: AppColors.error),
+                    );
+                  }
+                },
+                icon: const Icon(Icons.delete_outline, size: 16),
+                label: const Text('Delete'),
+              ),
+            ] else ...[
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.error,

@@ -174,16 +174,20 @@ class ReviewRepository {
 
   Future<void> approveReview(String reviewId, bool approve) async {
     // 1. Update local cache
-    if (approve) {
-      final localIndex = _localReviews.indexWhere((r) => r.id == reviewId);
-      if (localIndex != -1) {
-        final existing = _localReviews[localIndex];
+    final localIndex = _localReviews.indexWhere((r) => r.id == reviewId);
+    if (localIndex != -1) {
+      final existing = _localReviews[localIndex];
+      if (approve) {
         _localReviews[localIndex] = existing.copyWith(
           isApproved: true,
+          isRejected: false,
+        );
+      } else {
+        _localReviews[localIndex] = existing.copyWith(
+          isApproved: false,
+          isRejected: true,
         );
       }
-    } else {
-      _localReviews.removeWhere((r) => r.id == reviewId);
     }
 
     final db = _firestore;
@@ -194,12 +198,73 @@ class ReviewRepository {
       if (approve) {
         await db.collection('reviews').doc(reviewId).update({
           'isApproved': true,
+          'isRejected': false,
         });
       } else {
-        await db.collection('reviews').doc(reviewId).delete();
+        await db.collection('reviews').doc(reviewId).update({
+          'isApproved': false,
+          'isRejected': true,
+        });
       }
     } catch (e) {
       debugPrint('Firestore approveReview error: $e');
+    }
+  }
+
+  Future<void> revokeReview(String reviewId) async {
+    // 1. Update local cache
+    final localIndex = _localReviews.indexWhere((r) => r.id == reviewId);
+    if (localIndex != -1) {
+      final existing = _localReviews[localIndex];
+      _localReviews[localIndex] = existing.copyWith(
+        isApproved: false,
+        isRejected: false,
+      );
+    }
+
+    final db = _firestore;
+    if (db == null) {
+      return;
+    }
+    try {
+      await db.collection('reviews').doc(reviewId).update({
+        'isApproved': false,
+        'isRejected': false,
+      });
+    } catch (e) {
+      debugPrint('Firestore revokeReview error: $e');
+    }
+  }
+
+  Future<void> updateReview(
+    String reviewId, {
+    required String title,
+    required String description,
+    required double rating,
+  }) async {
+    // 1. Update local cache
+    final localIndex = _localReviews.indexWhere((r) => r.id == reviewId);
+    if (localIndex != -1) {
+      final existing = _localReviews[localIndex];
+      _localReviews[localIndex] = existing.copyWith(
+        title: title,
+        description: description,
+        rating: rating,
+      );
+    }
+
+    final db = _firestore;
+    if (db == null) {
+      return;
+    }
+    try {
+      await db.collection('reviews').doc(reviewId).update({
+        'title': title,
+        'description': description,
+        'rating': rating,
+      });
+    } catch (e) {
+      debugPrint('Firestore updateReview error: $e');
     }
   }
 
