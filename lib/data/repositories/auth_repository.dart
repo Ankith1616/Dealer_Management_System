@@ -7,7 +7,6 @@ import 'package:flutter/foundation.dart';
 import '../models/user_model.dart';
 import '../mock/mock_data.dart';
 import 'package:uuid/uuid.dart';
-import 'local_storage_helper.dart';
 
 class AuthRepository {
   final fb_auth.FirebaseAuth _firebaseAuth;
@@ -33,19 +32,7 @@ class AuthRepository {
 
   AuthRepository({fb_auth.FirebaseAuth? firebaseAuth})
       : _firebaseAuth = firebaseAuth ?? fb_auth.FirebaseAuth.instance {
-    _loadMockUsersFromStorage();
     _initCurrentUser();
-  }
-
-  void _loadMockUsersFromStorage() {
-    final storedUsers = LocalStorageHelper.getMockUsers();
-    if (storedUsers.isNotEmpty) {
-      _customerUsers.addAll(storedUsers);
-    }
-    final storedPasswords = LocalStorageHelper.getMockPasswords();
-    if (storedPasswords.isNotEmpty) {
-      _customerPasswords.addAll(storedPasswords);
-    }
   }
   
   UserModel? get currentUser => _currentUser;
@@ -54,11 +41,6 @@ class AuthRepository {
     final fbUser = _firebaseAuth.currentUser;
     if (fbUser != null) {
       final email = fbUser.email?.toLowerCase();
-      final storedUser = LocalStorageHelper.getUserProfile(fbUser.uid);
-      if (storedUser != null) {
-        _currentUser = storedUser;
-        return;
-      }
       if (email == 'vasavitraders2004@gmail.com') {
         _currentUser = MockData.dealerUser.copyWith(uid: fbUser.uid);
       } else if (email != null && email.isNotEmpty) {
@@ -90,7 +72,6 @@ class AuthRepository {
         if (doc.exists && doc.data() != null) {
           final user = UserModel.fromMap(doc.data()!);
           _currentUser = user;
-          LocalStorageHelper.saveUserProfile(fbUser.uid, user);
           return _currentUser;
         } else {
           if (_currentUser == null) {
@@ -98,7 +79,6 @@ class AuthRepository {
           }
           if (_currentUser != null) {
             await firestore.collection('users').doc(fbUser.uid).set(_currentUser!.toMap());
-            LocalStorageHelper.saveUserProfile(fbUser.uid, _currentUser!);
           }
         }
       } catch (e) {
@@ -106,10 +86,7 @@ class AuthRepository {
       }
     }
 
-    final storedUser = LocalStorageHelper.getUserProfile(fbUser.uid);
-    if (storedUser != null) {
-      _currentUser = storedUser;
-    } else if (_currentUser == null) {
+    if (_currentUser == null) {
       _initCurrentUser();
     }
     return _currentUser;
@@ -155,7 +132,6 @@ class AuthRepository {
               debugPrint('Firestore login profile sync error: $e');
             }
           }
-          LocalStorageHelper.saveUserProfile(fbUser.uid, _currentUser!);
         }
 
         return _currentUser!;
@@ -176,8 +152,6 @@ class AuthRepository {
             final mockPassword = data['password'] as String;
             _customerUsers[identifier] = mockUser;
             _customerPasswords[identifier] = mockPassword;
-            LocalStorageHelper.saveMockUsers(_customerUsers);
-            LocalStorageHelper.saveMockPasswords(_customerPasswords);
           }
         } catch (e) {
           debugPrint('Firestore mock login sync error: $e');
@@ -191,9 +165,6 @@ class AuthRepository {
         throw Exception('Wrong credentials');
       }
       _currentUser = _customerUsers[identifier];
-      if (_currentUser != null) {
-        LocalStorageHelper.saveUserProfile(_currentUser!.uid, _currentUser!);
-      }
       return _currentUser!;
     }
   }
@@ -230,9 +201,6 @@ class AuthRepository {
     
     _customerPasswords[cleanPhone] = password;
     _customerUsers[cleanPhone] = newUser;
-    
-    LocalStorageHelper.saveMockUsers(_customerUsers);
-    LocalStorageHelper.saveMockPasswords(_customerPasswords);
 
     final firestore = _firestore;
     if (firestore != null) {
@@ -375,7 +343,6 @@ class AuthRepository {
           debugPrint('Firestore loginWithGoogle profile sync error: $e');
         }
       }
-      LocalStorageHelper.saveUserProfile(fbUser.uid, _currentUser!);
 
       return _currentUser!;
     } catch (e) {
@@ -431,7 +398,6 @@ class AuthRepository {
     }
 
     if (fbUser != null) {
-      LocalStorageHelper.saveUserProfile(fbUser.uid, updatedUser);
       final firestore = _firestore;
       if (firestore != null) {
         try {
@@ -440,8 +406,6 @@ class AuthRepository {
           debugPrint('Firestore updateProfile error: $e');
         }
       }
-    } else {
-      LocalStorageHelper.saveUserProfile(updatedUser.uid, updatedUser);
     }
 
     _currentUser = updatedUser;

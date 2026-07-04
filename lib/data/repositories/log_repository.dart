@@ -4,7 +4,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/user_model.dart';
 import '../models/visit_log_model.dart';
-import 'local_storage_helper.dart';
 
 final logRepositoryProvider = Provider((ref) => LogRepository());
 
@@ -14,12 +13,6 @@ final visitLogsProvider = StreamProvider.autoDispose<List<VisitLogModel>>((ref) 
 
 class LogRepository {
   static final _localLogsController = StreamController<List<VisitLogModel>>.broadcast();
-
-  LogRepository() {
-    if (LocalStorageHelper.getClearedFlag()) {
-      _localLogs.clear();
-    }
-  }
 
   void _notifyLocalLogs() {
     final list = List<VisitLogModel>.from(_localLogs);
@@ -116,7 +109,6 @@ class LogRepository {
 
   Future<void> logVisit(UserModel user) async {
     final now = DateTime.now();
-    LocalStorageHelper.saveClearedFlag(false);
 
     // 1. Calculate next visitCount locally
     final userLogs = _localLogs.where((log) => log.uid == user.uid);
@@ -175,6 +167,9 @@ class LogRepository {
         'visitCount': dbVisitCount,
         'lastVisited': FieldValue.serverTimestamp(),
       });
+      
+      // Reset cleared flag in Firestore metadata
+      await firestore.collection('visit_logs_meta').doc('status').set({'isCleared': false});
 
       // Keep only top 100 in Firestore
       final firestoreSnap = await firestore
@@ -196,7 +191,6 @@ class LogRepository {
   Future<void> clearVisitLogs() async {
     _localLogs.clear();
     _notifyLocalLogs();
-    LocalStorageHelper.saveClearedFlag(true);
     final firestore = _firestore;
     if (firestore == null) {
       return;
@@ -207,6 +201,8 @@ class LogRepository {
       for (final doc in snap.docs) {
         batch.delete(doc.reference);
       }
+      // Set cleared metadata flag in Firestore
+      batch.set(firestore.collection('visit_logs_meta').doc('status'), {'isCleared': true});
       await batch.commit();
     } catch (e) {
       debugPrint('Firestore clearVisitLogs error: $e');
@@ -233,29 +229,37 @@ class LogRepository {
       
       return controller.stream;
     }
-    // Listen to Firestore, and merge with the local logs (avoiding duplicates)
+    // Listen to Firestore, and auto-initialize mock logs if Firestore is empty and not explicitly cleared
     return firestore
         .collection('visit_logs')
         .snapshots()
-        .map((snapshot) {
+        .asyncMap((snapshot) async {
       final firestoreLogs = snapshot.docs
           .map((doc) => VisitLogModel.fromMap(doc.data()))
           .toList();
 
-      final Map<String, VisitLogModel> uniqueLogsMap = {};
-      
-      for (final log in _localLogs) {
-        final key = '${log.uid}_${log.lastVisited.millisecondsSinceEpoch}';
-        uniqueLogsMap[key] = log;
-      }
-      for (final log in firestoreLogs) {
-        final key = '${log.uid}_${log.lastVisited.millisecondsSinceEpoch}';
-        uniqueLogsMap[key] = log;
+      if (firestoreLogs.isEmpty) {
+        try {
+          final metaDoc = await firestore.collection('visit_logs_meta').doc('status').get();
+          final isCleared = metaDoc.exists && (metaDoc.data()?['isCleared'] == true);
+          if (!isCleared) {
+            // First-time initialization: write mock logs to Firestore!
+            final batch = firestore.batch();
+            for (final log in _localLogs) {
+              final docRef = firestore.collection('visit_logs').doc();
+              batch.set(docRef, log.toMap());
+            }
+            batch.set(firestore.collection('visit_logs_meta').doc('status'), {'isCleared': false});
+            await batch.commit();
+            return <VisitLogModel>[];
+          }
+        } catch (e) {
+          debugPrint('Firestore mock logs population error: $e');
+        }
       }
 
-      final list = uniqueLogsMap.values.toList();
-      list.sort((a, b) => b.lastVisited.compareTo(a.lastVisited));
-      return list.take(100).toList();
+      firestoreLogs.sort((a, b) => b.lastVisited.compareTo(a.lastVisited));
+      return firestoreLogs.take(100).toList();
     });
   }
 }
