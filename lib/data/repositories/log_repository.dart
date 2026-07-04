@@ -34,7 +34,7 @@ class LogRepository {
       uid: 'dealer_1',
       displayName: 'Vasavi Traders',
       email: 'vasavitraders2004@gmail.com',
-      phoneNumber: '9876543211',
+      phoneNumber: '8331082396',
       role: 'dealer',
       visitCount: 29,
       lastVisited: DateTime.now().subtract(const Duration(seconds: 15)),

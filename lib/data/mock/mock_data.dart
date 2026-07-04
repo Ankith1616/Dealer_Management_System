@@ -23,7 +23,7 @@ class MockData {
   static final dealerUser = UserModel(
     uid: 'dealer_1',
     email: 'vasavitraders2004@gmail.com',
-    phoneNumber: '9876543211',
+    phoneNumber: '8331082396',
     displayName: 'Vasavi Traders',
     role: 'dealer',
     photoUrl: 'https://i.pravatar.cc/150?u=dealer_1',

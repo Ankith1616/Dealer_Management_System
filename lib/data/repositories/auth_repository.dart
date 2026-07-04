@@ -109,7 +109,7 @@ class AuthRepository {
           _currentUser = UserModel(
             uid: credential.user?.uid ?? const Uuid().v4(),
             email: identifier,
-            phoneNumber: credential.user?.phoneNumber ?? '9876543211',
+            phoneNumber: credential.user?.phoneNumber ?? '8331082396',
             displayName: credential.user?.displayName ?? 'Dealer',
             role: 'dealer',
             photoUrl: 'https://i.pravatar.cc/150?u=${identifier.hashCode}',
