@@ -53,7 +53,7 @@ class LogRepository {
       phoneNumber: '9876543210',
       role: 'customer',
       visitCount: 3,
-      lastVisited: DateTime.now().subtract(const Duration(hours: 1)),
+      lastVisited: DateTime.now().subtract(const Duration(days: 3)),
     ),
     VisitLogModel(
       uid: 'user_ankith_p',
@@ -62,7 +62,7 @@ class LogRepository {
       phoneNumber: '1234567890',
       role: 'customer',
       visitCount: 3,
-      lastVisited: DateTime.now().subtract(const Duration(hours: 4)),
+      lastVisited: DateTime.now().subtract(const Duration(days: 5)),
     ),
     VisitLogModel(
       uid: 'user_ankith',
