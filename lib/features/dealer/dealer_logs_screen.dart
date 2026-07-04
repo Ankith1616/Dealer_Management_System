@@ -127,10 +127,10 @@ class _DealerLogsScreenState extends ConsumerState<DealerLogsScreen> {
       body: SafeArea(
         child: logsAsync.when(
           data: (logs) {
-            // Group logs by unique user (uid or phone number)
+            // Group logs by unique user mobile number
             final Map<String, List<VisitLogModel>> grouped = {};
             for (final log in logs) {
-              final key = log.uid.isNotEmpty ? log.uid : log.phoneNumber;
+              final key = log.phoneNumber;
               grouped.putIfAbsent(key, () => []).add(log);
             }
 
@@ -138,11 +138,10 @@ class _DealerLogsScreenState extends ConsumerState<DealerLogsScreen> {
               final userLogs = entry.value;
               userLogs.sort((a, b) => b.lastVisited.compareTo(a.lastVisited));
               final latestLog = userLogs.first;
-              final maxVisits = userLogs.map((l) => l.visitCount).reduce((a, b) => a > b ? a : b);
               return _GroupedUserLogs(
                 user: latestLog,
                 allLogs: userLogs,
-                totalVisits: maxVisits,
+                totalVisits: userLogs.length,
               );
             }).toList();
 
@@ -991,7 +990,7 @@ class _DealerLogsScreenState extends ConsumerState<DealerLogsScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    'Visit #${visit.visitCount}',
+                                    'Visit #${item.allLogs.length - index}',
                                     style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                                   ),
                                   const SizedBox(height: 2),
