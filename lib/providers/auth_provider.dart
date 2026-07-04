@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../data/models/user_model.dart';
 import '../data/repositories/auth_repository.dart';
 
@@ -280,6 +281,15 @@ class AuthNotifier extends StateNotifier<AuthState> {
   Future<void> logout() async {
     state = state.copyWith(isLoading: true);
     await _repository.logout();
+    // Clear any remembered credentials so the login page starts fresh
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('remember_me');
+      await prefs.remove('saved_phone');
+      await prefs.remove('saved_email');
+      await prefs.remove('saved_password');
+      await prefs.remove('saved_is_dealer');
+    } catch (_) {}
     state = AuthState();
   }
 }

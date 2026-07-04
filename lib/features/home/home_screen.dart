@@ -37,10 +37,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         centerTitle: false,
         actions: [
           IconButton(
-            icon: const Icon(Icons.settings_outlined),
-            onPressed: () => context.push('/settings'),
-          ),
-          IconButton(
             icon: CircleAvatar(
               radius: 16,
               backgroundImage: Helpers.getAvatarImageProvider(

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/utils/validators.dart';
 import '../../providers/auth_provider.dart';
@@ -24,6 +25,66 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   bool _rememberMe = false;
   Timer? _countdownTimer;
   int _secondsRemaining = 120;
+
+  // SharedPreferences keys
+  static const _kRememberMe = 'remember_me';
+  static const _kSavedPhone = 'saved_phone';
+  static const _kSavedEmail = 'saved_email';
+  static const _kSavedPassword = 'saved_password';
+  static const _kSavedIsDealer = 'saved_is_dealer';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadRememberedCredentials();
+  }
+
+  Future<void> _loadRememberedCredentials() async {
+    final prefs = await SharedPreferences.getInstance();
+    final remembered = prefs.getBool(_kRememberMe) ?? false;
+    if (!remembered) return;
+
+    final savedPhone = prefs.getString(_kSavedPhone) ?? '';
+    final savedEmail = prefs.getString(_kSavedEmail) ?? '';
+    final savedPassword = prefs.getString(_kSavedPassword) ?? '';
+    final savedIsDealer = prefs.getBool(_kSavedIsDealer) ?? false;
+
+    if ((savedPhone.isNotEmpty || savedEmail.isNotEmpty) && savedPassword.isNotEmpty) {
+      setState(() {
+        _rememberMe = true;
+        _isDealerTab = savedIsDealer;
+        if (savedIsDealer) {
+          _emailController.text = savedEmail;
+        } else {
+          _phoneController.text = savedPhone;
+        }
+        _passwordController.text = savedPassword;
+      });
+    }
+  }
+
+  Future<void> _saveCredentials() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_kRememberMe, true);
+    await prefs.setBool(_kSavedIsDealer, _isDealerTab);
+    if (_isDealerTab) {
+      await prefs.setString(_kSavedEmail, _emailController.text.trim());
+      await prefs.remove(_kSavedPhone);
+    } else {
+      await prefs.setString(_kSavedPhone, _phoneController.text.trim());
+      await prefs.remove(_kSavedEmail);
+    }
+    await prefs.setString(_kSavedPassword, _passwordController.text);
+  }
+
+  Future<void> _clearSavedCredentials() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_kRememberMe);
+    await prefs.remove(_kSavedPhone);
+    await prefs.remove(_kSavedEmail);
+    await prefs.remove(_kSavedPassword);
+    await prefs.remove(_kSavedIsDealer);
+  }
 
   @override
   void dispose() {
@@ -125,6 +186,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         final user = currentAuthState.user;
         debugPrint('DEBUG LOGIN: user=${user?.displayName}, role=${user?.role}');
         if (user != null) {
+          // Save credentials if Remember Me is checked
+          if (_rememberMe) {
+            await _saveCredentials();
+          } else {
+            await _clearSavedCredentials();
+          }
+          if (!mounted) return;
           if (user.role == 'dealer') {
             context.go('/dealer');
           } else {
@@ -676,9 +744,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           value: _rememberMe,
                           activeColor: const Color(0xFF5E3FBE),
                           onChanged: (val) {
+                            final newVal = val ?? false;
                             setState(() {
-                              _rememberMe = val ?? false;
+                              _rememberMe = newVal;
                             });
+                            // If unchecked, immediately clear any saved session
+                            if (!newVal) {
+                              _clearSavedCredentials();
+                            }
                           },
                         ),
                       ),
