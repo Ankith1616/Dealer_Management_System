@@ -462,7 +462,7 @@ class _ReviewManagementScreenState extends ConsumerState<ReviewManagementScreen>
                         if (replyController.text.trim().isNotEmpty) {
                           await ref.read(reviewRepositoryProvider).replyToReview(review.id, replyController.text.trim());
                           ref.invalidate(allReviewsProvider);
-                          if (context.mounted) {
+                          if (mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(content: Text('Reply posted successfully.')),
                             );
@@ -616,6 +616,8 @@ class _ReviewManagementScreenState extends ConsumerState<ReviewManagementScreen>
                       );
                       return;
                     }
+                    final navigator = Navigator.of(context);
+                    final scaffoldMessenger = ScaffoldMessenger.of(context);
                     await ref.read(reviewRepositoryProvider).updateReview(
                           review.id,
                           title: titleController.text.trim(),
@@ -623,15 +625,13 @@ class _ReviewManagementScreenState extends ConsumerState<ReviewManagementScreen>
                           rating: currentRating,
                         );
                     ref.invalidate(allReviewsProvider);
-                    if (context.mounted) {
-                      Navigator.of(context).pop();
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Feedback updated successfully!'),
-                          backgroundColor: AppColors.success,
-                        ),
-                      );
-                    }
+                    navigator.pop();
+                    scaffoldMessenger.showSnackBar(
+                      const SnackBar(
+                        content: Text('Feedback updated successfully!'),
+                        backgroundColor: AppColors.success,
+                      ),
+                    );
                   },
                   child: const Text('Save Changes'),
                 ),
@@ -756,14 +756,14 @@ class _ReviewManagementScreenState extends ConsumerState<ReviewManagementScreen>
                   foregroundColor: Colors.white,
                 ),
                 onPressed: () async {
+                  final navigator = Navigator.of(context);
+                  final scaffoldMessenger = ScaffoldMessenger.of(context);
                   await ref.read(reviewRepositoryProvider).revokeReview(review.id);
                   ref.invalidate(allReviewsProvider);
-                  if (context.mounted) {
-                    Navigator.of(context).pop();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Feedback revoked and returned to pending.'), backgroundColor: AppColors.success),
-                    );
-                  }
+                  navigator.pop();
+                  scaffoldMessenger.showSnackBar(
+                    const SnackBar(content: Text('Feedback revoked and returned to pending.'), backgroundColor: AppColors.success),
+                  );
                 },
                 icon: const Icon(Icons.undo_rounded, size: 16),
                 label: const Text('Revoke / Restore'),
@@ -775,14 +775,14 @@ class _ReviewManagementScreenState extends ConsumerState<ReviewManagementScreen>
                   foregroundColor: Colors.white,
                 ),
                 onPressed: () async {
+                  final navigator = Navigator.of(context);
+                  final scaffoldMessenger = ScaffoldMessenger.of(context);
                   await ref.read(reviewRepositoryProvider).approveReview(review.id, false);
                   ref.invalidate(allReviewsProvider);
-                  if (context.mounted) {
-                    Navigator.of(context).pop();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Feedback deleted.'), backgroundColor: AppColors.error),
-                    );
-                  }
+                  navigator.pop();
+                  scaffoldMessenger.showSnackBar(
+                    const SnackBar(content: Text('Feedback deleted.'), backgroundColor: AppColors.error),
+                  );
                 },
                 icon: const Icon(Icons.delete_outline, size: 16),
                 label: const Text('Delete'),
@@ -794,14 +794,14 @@ class _ReviewManagementScreenState extends ConsumerState<ReviewManagementScreen>
                   foregroundColor: Colors.white,
                 ),
                 onPressed: () async {
+                  final navigator = Navigator.of(context);
+                  final scaffoldMessenger = ScaffoldMessenger.of(context);
                   await ref.read(reviewRepositoryProvider).approveReview(review.id, false);
                   ref.invalidate(allReviewsProvider);
-                  if (context.mounted) {
-                    Navigator.of(context).pop();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Feedback rejected.'), backgroundColor: AppColors.error),
-                    );
-                  }
+                  navigator.pop();
+                  scaffoldMessenger.showSnackBar(
+                    const SnackBar(content: Text('Feedback rejected.'), backgroundColor: AppColors.error),
+                  );
                 },
                 child: const Text('Reject'),
               ),
@@ -811,14 +811,14 @@ class _ReviewManagementScreenState extends ConsumerState<ReviewManagementScreen>
                   foregroundColor: Colors.white,
                 ),
                 onPressed: () async {
+                  final navigator = Navigator.of(context);
+                  final scaffoldMessenger = ScaffoldMessenger.of(context);
                   await ref.read(reviewRepositoryProvider).approveReview(review.id, true);
                   ref.invalidate(allReviewsProvider);
-                  if (context.mounted) {
-                    Navigator.of(context).pop();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Feedback approved! Live on site.'), backgroundColor: AppColors.success),
-                    );
-                  }
+                  navigator.pop();
+                  scaffoldMessenger.showSnackBar(
+                    const SnackBar(content: Text('Feedback approved! Live on site.'), backgroundColor: AppColors.success),
+                  );
                 },
                 child: const Text('Approve & Publish'),
               ),
