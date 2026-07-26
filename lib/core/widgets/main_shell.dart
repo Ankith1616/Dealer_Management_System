@@ -17,9 +17,9 @@ class MainShell extends StatelessWidget {
   int _getSelectedIndex() {
     if (currentPath.startsWith('/home')) return 0;
     if (currentPath.startsWith('/products')) return 1;
-    if (currentPath.startsWith('/compare')) return 2;
-    if (currentPath.startsWith('/budget')) return 3;
-    if (currentPath.startsWith('/profile') || currentPath.startsWith('/settings')) return 4;
+    if (currentPath.startsWith('/chatbot')) return 2;
+    if (currentPath.startsWith('/compare')) return 3;
+    if (currentPath.startsWith('/budget')) return 4;
     return 0;
   }
 
@@ -32,13 +32,13 @@ class MainShell extends StatelessWidget {
         context.go('/products');
         break;
       case 2:
-        context.go('/compare');
+        context.go('/chatbot');
         break;
       case 3:
-        context.go('/budget');
+        context.go('/compare');
         break;
       case 4:
-        context.go('/profile');
+        context.go('/budget');
         break;
     }
   }
@@ -74,24 +74,24 @@ class MainShell extends StatelessWidget {
                 label: 'Home',
               ),
               NavigationDestination(
-                icon: Icon(Icons.format_paint_outlined),
-                selectedIcon: Icon(Icons.format_paint, color: AppColors.primary),
-                label: 'Paints',
+                icon: Icon(Icons.search_rounded),
+                selectedIcon: Icon(Icons.search, color: AppColors.primary),
+                label: 'Search',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.smart_toy_outlined),
+                selectedIcon: Icon(Icons.smart_toy_rounded, color: AppColors.primary),
+                label: 'Rangmitra',
               ),
               NavigationDestination(
                 icon: Icon(Icons.compare_arrows_outlined),
                 selectedIcon: Icon(Icons.compare_arrows, color: AppColors.primary),
-                label: 'Compare',
+                label: 'Comparison',
               ),
               NavigationDestination(
                 icon: Icon(Icons.calculate_outlined),
                 selectedIcon: Icon(Icons.calculate, color: AppColors.primary),
                 label: 'Budget',
-              ),
-              NavigationDestination(
-                icon: Icon(Icons.person_outline),
-                selectedIcon: Icon(Icons.person, color: AppColors.primary),
-                label: 'Profile',
               ),
             ],
           ),
@@ -130,24 +130,24 @@ class MainShell extends StatelessWidget {
                   label: Text('Home'),
                 ),
                 NavigationRailDestination(
-                  icon: Icon(Icons.format_paint_outlined),
-                  selectedIcon: Icon(Icons.format_paint, color: AppColors.primary),
-                  label: Text('Paints'),
+                  icon: Icon(Icons.search_rounded),
+                  selectedIcon: Icon(Icons.search, color: AppColors.primary),
+                  label: Text('Search'),
+                ),
+                NavigationRailDestination(
+                  icon: Icon(Icons.smart_toy_outlined),
+                  selectedIcon: Icon(Icons.smart_toy_rounded, color: AppColors.primary),
+                  label: Text('Rangmitra'),
                 ),
                 NavigationRailDestination(
                   icon: Icon(Icons.compare_arrows_outlined),
                   selectedIcon: Icon(Icons.compare_arrows, color: AppColors.primary),
-                  label: Text('Compare'),
+                  label: Text('Comparison'),
                 ),
                 NavigationRailDestination(
                   icon: Icon(Icons.calculate_outlined),
                   selectedIcon: Icon(Icons.calculate, color: AppColors.primary),
                   label: Text('Budget'),
-                ),
-                NavigationRailDestination(
-                  icon: Icon(Icons.person_outline),
-                  selectedIcon: Icon(Icons.person, color: AppColors.primary),
-                  label: Text('Profile'),
                 ),
               ],
             ),

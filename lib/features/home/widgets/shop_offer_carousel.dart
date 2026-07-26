@@ -83,7 +83,7 @@ class _ShopOfferCarouselState extends State<ShopOfferCarousel> {
     return Column(
       children: [
         SizedBox(
-          height: 240,
+          height: 260,
           child: PageView.builder(
             controller: _pageController,
             onPageChanged: (index) {
@@ -157,14 +157,18 @@ class _OfferCard extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.18),
+                      color: Colors.white.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(AppSizes.radiusRound),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.25),
+                        width: 1,
+                      ),
                     ),
                     child: Text(
                       slide.badge,
-                      style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600),
+                      style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w700, letterSpacing: 0.3),
                     ),
                   ),
                   Column(

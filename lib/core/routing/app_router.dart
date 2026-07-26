@@ -24,6 +24,7 @@ import '../../features/dealer/complaint_management_screen.dart';
 import '../../features/dealer/dealer_logs_screen.dart';
 import '../../features/profile/profile_screen.dart';
 import '../../features/profile/settings_screen.dart';
+import '../../features/chatbot/chatbot_screen.dart';
 
 // Shell Wrappers
 import '../widgets/main_shell.dart';
@@ -148,6 +149,10 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/budget',
             builder: (context, state) => const BudgetCalculatorScreen(),
+          ),
+          GoRoute(
+            path: '/chatbot',
+            builder: (context, state) => const ChatbotScreen(),
           ),
           GoRoute(
             path: '/profile',

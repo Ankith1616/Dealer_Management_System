@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:uuid/uuid.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_sizes.dart';
@@ -11,6 +12,7 @@ import '../../data/models/review_model.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/product_provider.dart';
 import '../../providers/review_provider.dart';
+import '../../core/widgets/smart_image.dart';
 import 'widgets/rating_input.dart';
 import '../../providers/activity_history_provider.dart';
 
@@ -25,15 +27,12 @@ class SubmitReviewScreen extends ConsumerStatefulWidget {
 
 class _SubmitReviewScreenState extends ConsumerState<SubmitReviewScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _titleController = TextEditingController();
-  final _descController = TextEditingController();
   final _custNameController = TextEditingController();
   final _phoneController = TextEditingController();
   final _addressController = TextEditingController();
-  final _professionController = TextEditingController();
+  final _commentsController = TextEditingController();
   final _discoveryController = TextEditingController();
   final _otherController = TextEditingController();
-  final double _rating = 0;
   double _exteriorRating = 0;
   double _interiorRating = 0;
   bool _wantToGiveFeedback = false;
@@ -43,18 +42,85 @@ class _SubmitReviewScreenState extends ConsumerState<SubmitReviewScreen> {
   String? _selectedExteriorProductId;
   String? _selectedInteriorProductId;
   String? _selectedUserType;
+  String? _selectedProfession;
+  final List<XFile> _pickedImages = [];
+  bool _autoFilled = false;
+
+  static const List<String> _professionOptions = [
+    'Employee',
+    'Student',
+    'Contractor',
+    'Business Owner',
+    'Homemaker',
+    'Retired',
+    'Government',
+    'Freelancer',
+    'Other',
+  ];
 
   @override
   void dispose() {
-    _titleController.dispose();
-    _descController.dispose();
     _custNameController.dispose();
     _phoneController.dispose();
     _addressController.dispose();
-    _professionController.dispose();
+    _commentsController.dispose();
     _discoveryController.dispose();
     _otherController.dispose();
     super.dispose();
+  }
+
+  /// Auto-fill user details from the logged-in session
+  void _autoFillUserDetails() {
+    if (_autoFilled) return;
+    final user = ref.read(currentUserProvider);
+    if (user != null) {
+      _autoFilled = true;
+      if (_custNameController.text.isEmpty && user.displayName.isNotEmpty) {
+        _custNameController.text = user.displayName;
+      }
+      if (_phoneController.text.isEmpty && user.phoneNumber.isNotEmpty) {
+        _phoneController.text = user.phoneNumber;
+      }
+      if (_addressController.text.isEmpty && user.address.isNotEmpty) {
+        _addressController.text = user.address;
+      }
+    }
+  }
+
+  Future<void> _pickImages() async {
+    final picker = ImagePicker();
+    final maxAllowed = 8 - _pickedImages.length;
+    if (maxAllowed <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Maximum 8 images allowed')),
+      );
+      return;
+    }
+    try {
+      final List<XFile> images = await picker.pickMultiImage(
+        imageQuality: 80,
+        maxWidth: 1920,
+        maxHeight: 1920,
+      );
+      if (images.isNotEmpty) {
+        setState(() {
+          final remaining = maxAllowed;
+          _pickedImages.addAll(images.take(remaining));
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Could not pick images: $e')),
+        );
+      }
+    }
+  }
+
+  void _removeImage(int index) {
+    setState(() {
+      _pickedImages.removeAt(index);
+    });
   }
 
   void _submit() async {
@@ -108,7 +174,6 @@ class _SubmitReviewScreenState extends ConsumerState<SubmitReviewScreen> {
 
       if (user == null) {
         setState(() => _isSubmitting = false);
-        // redirect to login
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please login to submit a review')));
         context.push('/login');
         return;
@@ -130,6 +195,9 @@ class _SubmitReviewScreenState extends ConsumerState<SubmitReviewScreen> {
 
       final resolvedProduct = product ?? await ref.read(productRepositoryProvider).getProductById(targetProductId);
 
+      // Collect image paths for the review
+      final imagePaths = _pickedImages.map((xf) => xf.path).toList();
+
       final newReview = ReviewModel(
         id: const Uuid().v4(),
         productId: targetProductId,
@@ -137,14 +205,14 @@ class _SubmitReviewScreenState extends ConsumerState<SubmitReviewScreen> {
         userId: user.uid,
         userName: _custNameController.text.isNotEmpty ? _custNameController.text : user.displayName,
         userPhotoUrl: user.photoUrl,
-        rating: (_exteriorRating + _interiorRating) > 0 ? ((_exteriorRating + _interiorRating) / ((_exteriorRating>0?1:0) + (_interiorRating>0?1:0))) : _rating,
-        title: _titleController.text,
-        description: _descController.text,
-        images: const [],
+        rating: (_exteriorRating + _interiorRating) > 0 ? ((_exteriorRating + _interiorRating) / ((_exteriorRating>0?1:0) + (_interiorRating>0?1:0))) : 0,
+        title: '', // Title removed per user request
+        description: _commentsController.text.trim(),
+        images: imagePaths,
         createdAt: DateTime.now(),
         phone: _phoneController.text.isNotEmpty ? _phoneController.text : null,
         address: _addressController.text.isNotEmpty ? _addressController.text : null,
-        profession: _professionController.text.isNotEmpty ? _professionController.text : null,
+        profession: _selectedProfession,
         isVerified: _isVerified,
         company: _selectedCompany,
         exteriorPaintId: _selectedExteriorProductId,
@@ -425,11 +493,132 @@ class _SubmitReviewScreenState extends ConsumerState<SubmitReviewScreen> {
     );
   }
 
+  Widget _buildImagePickerSection() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            const Icon(Icons.camera_alt_outlined, size: 18, color: AppColors.primary),
+            const SizedBox(width: 8),
+            Text(
+              'Attach Photos',
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+            ),
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                color: Colors.grey.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Text(
+                'Optional',
+                style: TextStyle(fontSize: 10, color: Colors.grey.shade600, fontWeight: FontWeight.w600),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 6),
+        Text(
+          'Upload bills, painted walls, or building photos (max 8 images)',
+          style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
+        ),
+        const SizedBox(height: AppSizes.p12),
+
+        // Image grid
+        if (_pickedImages.isNotEmpty) ...[
+          SizedBox(
+            height: 100,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: _pickedImages.length,
+              separatorBuilder: (context, i) => const SizedBox(width: 8),
+              itemBuilder: (context, index) {
+                return Stack(
+                  children: [
+                    Container(
+                      width: 100,
+                      height: 100,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: isDark
+                              ? Colors.white.withValues(alpha: 0.12)
+                              : Colors.grey.shade300,
+                        ),
+                        color: isDark
+                            ? Colors.white.withValues(alpha: 0.06)
+                            : Colors.grey.shade100,
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(11),
+                        child: SmartImage(
+                          path: _pickedImages[index].path,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      top: 4,
+                      right: 4,
+                      child: GestureDetector(
+                        onTap: () => _removeImage(index),
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: const BoxDecoration(
+                            color: Colors.black54,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.close,
+                              size: 14, color: Colors.white),
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+          const SizedBox(height: AppSizes.p12),
+        ],
+
+        // Add photos button
+        if (_pickedImages.length < 8)
+          OutlinedButton.icon(
+            onPressed: _pickImages,
+            icon: const Icon(Icons.add_photo_alternate_outlined, size: 20),
+            label: Text(_pickedImages.isEmpty
+                ? 'Add Photos'
+                : 'Add More (${_pickedImages.length}/8)'),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: AppColors.primary,
+              side: BorderSide(
+                color: AppColors.primary.withValues(alpha: 0.3),
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              padding: const EdgeInsets.symmetric(
+                  horizontal: 16, vertical: 12),
+            ),
+          ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final productAsync = widget.productId != null
         ? ref.watch(productByIdProvider(widget.productId!))
         : const AsyncValue.data(null);
+
+    // Auto-fill once the form is built
+    _autoFillUserDetails();
 
     return Scaffold(
       appBar: const CustomAppBar(title: 'Write a Review'),
@@ -477,7 +666,7 @@ class _SubmitReviewScreenState extends ConsumerState<SubmitReviewScreen> {
                               ),
                             const SizedBox(height: AppSizes.p16),
 
-                            // Personal details
+                            // ── Personal details ──
                             Text(
                               'Your details',
                               style: Theme.of(context).textTheme.titleMedium,
@@ -494,7 +683,13 @@ class _SubmitReviewScreenState extends ConsumerState<SubmitReviewScreen> {
                             const SizedBox(height: AppSizes.p12),
                             TextFormField(
                               controller: _phoneController,
-                              decoration: const InputDecoration(labelText: 'Phone number'),
+                              decoration: InputDecoration(
+                                labelText: 'Phone number',
+                                suffixIcon: _phoneController.text.isNotEmpty
+                                    ? const Icon(Icons.check_circle,
+                                        color: AppColors.success, size: 20)
+                                    : null,
+                              ),
                               keyboardType: TextInputType.phone,
                               validator: (val) {
                                 if (val == null || val.isEmpty) return 'Please enter phone number';
@@ -507,10 +702,17 @@ class _SubmitReviewScreenState extends ConsumerState<SubmitReviewScreen> {
                               decoration: const InputDecoration(labelText: 'Address'),
                             ),
                             const SizedBox(height: AppSizes.p12),
-                            TextFormField(
-                              controller: _professionController,
+
+                            // ── Profession Dropdown ──
+                            DropdownButtonFormField<String>(
+                              initialValue: _selectedProfession,
                               decoration: const InputDecoration(labelText: 'Profession'),
+                              items: _professionOptions
+                                  .map((p) => DropdownMenuItem(value: p, child: Text(p)))
+                                  .toList(),
+                              onChanged: (val) => setState(() => _selectedProfession = val),
                             ),
+
                             const SizedBox(height: AppSizes.p12),
                             CheckboxListTile(
                               contentPadding: EdgeInsets.zero,
@@ -522,7 +724,7 @@ class _SubmitReviewScreenState extends ConsumerState<SubmitReviewScreen> {
 
                             const SizedBox(height: AppSizes.p20),
 
-                            // Company and product selection
+                            // ── Company and product selection ──
                             if (widget.productId == null) ...[
                               Builder(builder: (context) {
                                 final allProductsAsync = ref.watch(allProductsProvider);
@@ -577,7 +779,7 @@ class _SubmitReviewScreenState extends ConsumerState<SubmitReviewScreen> {
 
                             const SizedBox(height: AppSizes.p20),
 
-                            // Dynamic ratings display based on selection context
+                            // ── Ratings ──
                             if (widget.productId != null) ...[
                               Text('Your Rating', style: Theme.of(context).textTheme.titleSmall),
                               const SizedBox(height: AppSizes.p8),
@@ -609,6 +811,50 @@ class _SubmitReviewScreenState extends ConsumerState<SubmitReviewScreen> {
 
                             const SizedBox(height: AppSizes.p20),
 
+                            // ── Image upload section ──
+                            _buildImagePickerSection(),
+
+                            const SizedBox(height: AppSizes.p24),
+
+                            // ── Comments (optional) ──
+                            Row(
+                              children: [
+                                const Icon(Icons.comment_outlined, size: 18, color: AppColors.primary),
+                                const SizedBox(width: 8),
+                                Text(
+                                  'Comments',
+                                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                ),
+                                const SizedBox(width: 8),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey.withValues(alpha: 0.15),
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: Text(
+                                    'Optional',
+                                    style: TextStyle(fontSize: 10, color: Colors.grey.shade600, fontWeight: FontWeight.w600),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: AppSizes.p8),
+                            TextFormField(
+                              controller: _commentsController,
+                              maxLines: 3,
+                              decoration: const InputDecoration(
+                                hintText: 'Share any additional thoughts about your experience...',
+                                alignLabelWithHint: true,
+                              ),
+                              // No validator — comments are optional
+                            ),
+
+                            const SizedBox(height: AppSizes.p20),
+
+                            // ── Feedback confirmation checkbox ──
                             CheckboxListTile(
                               contentPadding: EdgeInsets.zero,
                               value: _wantToGiveFeedback,
@@ -620,37 +866,6 @@ class _SubmitReviewScreenState extends ConsumerState<SubmitReviewScreen> {
                               controlAffinity: ListTileControlAffinity.leading,
                               title: const Text('I want to give feedback'),
                               subtitle: const Text('Enable this option before submitting your review.'),
-                            ),
-                            
-                            const SizedBox(height: AppSizes.p32),
-                            
-                            TextFormField(
-                              controller: _titleController,
-                              decoration: const InputDecoration(
-                                labelText: 'Review Title',
-                                hintText: 'Sum up your experience',
-                              ),
-                              validator: (val) {
-                                if (val == null || val.isEmpty) return 'Please enter a title';
-                                return null;
-                              },
-                            ),
-                            
-                            const SizedBox(height: AppSizes.p24),
-                            
-                            TextFormField(
-                              controller: _descController,
-                              maxLines: 5,
-                              decoration: const InputDecoration(
-                                labelText: 'Review Details',
-                                hintText: 'What did you like or dislike?',
-                                alignLabelWithHint: true,
-                              ),
-                              validator: (val) {
-                                if (val == null || val.isEmpty) return 'Please enter review details';
-                                if (val.length < 10) return 'Review is too short (min 10 chars)';
-                                return null;
-                              },
                             ),
                             
                             const SizedBox(height: AppSizes.p32),

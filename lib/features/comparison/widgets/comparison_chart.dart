@@ -11,54 +11,104 @@ class ComparisonChart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (products.isEmpty) return const SizedBox.shrink();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    // Normalize data for chart comparison (scale 0-10)
-    // Price: lower is better, so max price gets 0, min gets 10
-    final maxPrice = products.map((p) => p.price).reduce((a, b) => a > b ? a : b);
-    
-    // Coverage: higher is better
-    final maxCoverage = products.map((p) => p.coverage).reduce((a, b) => a > b ? a : b);
-    
-    // Rating: higher is better
-    final maxRating = 5.0; // max possible rating
+    final maxCoverage =
+        products.map((p) => p.coverage).reduce((a, b) => a > b ? a : b);
+    final maxWarranty =
+        products.map((p) => p.warranty).reduce((a, b) => a > b ? a : b);
+    const maxRating = 5.0;
 
-    final colors = [
+    final barColors = [
       AppColors.primary,
       AppColors.secondary,
-      AppColors.accent,
+      Colors.teal,
     ];
 
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        Row(
+          children: const [
+            Icon(Icons.bar_chart_rounded, color: AppColors.primary, size: 20),
+            SizedBox(width: 8),
+            Text(
+              'Performance & Durability Comparison',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 14,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        Text(
+          'Visual comparison normalized on a 0-10 performance index.',
+          style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+        ),
+        const SizedBox(height: 24),
         SizedBox(
-          height: 250,
+          height: 240,
           child: BarChart(
             key: ValueKey(products.map((p) => p.id).join('_')),
             BarChartData(
               alignment: BarChartAlignment.spaceAround,
               maxY: 10,
-              barTouchData: BarTouchData(enabled: false),
+              barTouchData: BarTouchData(
+                enabled: true,
+                touchTooltipData: BarTouchTooltipData(
+                  getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                    final p = products[rodIndex];
+                    final metricName = groupIndex == 0
+                        ? 'Coverage (${p.coverage} sq ft)'
+                        : (groupIndex == 1
+                            ? 'Warranty (${p.warranty} Yrs)'
+                            : 'Rating (${p.rating} ★)');
+                    return BarTooltipItem(
+                      '${p.name}\n$metricName',
+                      const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 11),
+                    );
+                  },
+                ),
+              ),
               titlesData: FlTitlesData(
                 show: true,
                 bottomTitles: AxisTitles(
                   sideTitles: SideTitles(
                     showTitles: true,
                     getTitlesWidget: (value, meta) {
-                      const titles = ['Value for Money', 'Coverage', 'Rating'];
-                      return Padding(
-                        padding: const EdgeInsets.only(top: 8.0),
-                        child: Text(
-                          titles[value.toInt()],
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
-                        ),
-                      );
+                      const titles = [
+                        'Coverage',
+                        'Warranty',
+                        'Rating'
+                      ];
+                      if (value.toInt() >= 0 && value.toInt() < titles.length) {
+                        return Padding(
+                          padding: const EdgeInsets.only(top: 8.0),
+                          child: Text(
+                            titles[value.toInt()],
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12,
+                              color: isDark ? Colors.white70 : Colors.black87,
+                            ),
+                          ),
+                        );
+                      }
+                      return const SizedBox.shrink();
                     },
                     reservedSize: 30,
                   ),
                 ),
-                leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                leftTitles:
+                    const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                topTitles:
+                    const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                rightTitles:
+                    const AxisTitles(sideTitles: SideTitles(showTitles: false)),
               ),
               borderData: FlBorderData(show: false),
               gridData: FlGridData(
@@ -66,47 +116,56 @@ class ComparisonChart extends StatelessWidget {
                 drawVerticalLine: false,
                 horizontalInterval: 2,
                 getDrawingHorizontalLine: (value) => FlLine(
-                  color: Colors.grey.withValues(alpha: 0.2),
+                  color: isDark
+                      ? Colors.white.withValues(alpha: 0.08)
+                      : Colors.grey.withValues(alpha: 0.15),
                   strokeWidth: 1,
                 ),
               ),
               barGroups: [
-                // Group 1: Value for Money (Normalized Price inverted)
+                // Group 0: Coverage
                 BarChartGroupData(
                   x: 0,
                   barRods: List.generate(products.length, (i) {
-                    final normalizedValue = maxPrice > 0 ? 10 - ((products[i].price / maxPrice) * 10) : 0.0;
+                    final val = maxCoverage > 0
+                        ? (products[i].coverage / maxCoverage) * 10
+                        : 0.0;
                     return BarChartRodData(
-                      toY: normalizedValue < 1 ? 1 : normalizedValue, // min 1 for visibility
-                      color: colors[i % colors.length],
-                      width: 15,
-                      borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
+                      toY: val < 1 ? 1 : val,
+                      color: barColors[i % barColors.length],
+                      width: 18,
+                      borderRadius:
+                          const BorderRadius.vertical(top: Radius.circular(6)),
                     );
                   }),
                 ),
-                // Group 2: Coverage
+                // Group 1: Warranty
                 BarChartGroupData(
                   x: 1,
                   barRods: List.generate(products.length, (i) {
-                    final normalizedValue = maxCoverage > 0 ? (products[i].coverage / maxCoverage) * 10 : 0.0;
+                    final val = maxWarranty > 0
+                        ? (products[i].warranty / maxWarranty) * 10
+                        : 0.0;
                     return BarChartRodData(
-                      toY: normalizedValue,
-                      color: colors[i % colors.length],
-                      width: 15,
-                      borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
+                      toY: val < 1 ? 1 : val,
+                      color: barColors[i % barColors.length],
+                      width: 18,
+                      borderRadius:
+                          const BorderRadius.vertical(top: Radius.circular(6)),
                     );
                   }),
                 ),
-                // Group 3: Rating
+                // Group 2: Rating
                 BarChartGroupData(
                   x: 2,
                   barRods: List.generate(products.length, (i) {
-                    final normalizedValue = (products[i].rating / maxRating) * 10;
+                    final val = (products[i].rating / maxRating) * 10;
                     return BarChartRodData(
-                      toY: normalizedValue,
-                      color: colors[i % colors.length],
-                      width: 15,
-                      borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
+                      toY: val < 1 ? 1 : val,
+                      color: barColors[i % barColors.length],
+                      width: 18,
+                      borderRadius:
+                          const BorderRadius.vertical(top: Radius.circular(6)),
                     );
                   }),
                 ),
@@ -114,28 +173,42 @@ class ComparisonChart extends StatelessWidget {
             ),
           ),
         ),
-        
-        // Legend
+
+        // Product Legend
         const SizedBox(height: 16),
         Wrap(
           spacing: 16,
           runSpacing: 8,
           alignment: WrapAlignment.center,
           children: List.generate(products.length, (i) {
-            return Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 12,
-                  height: 12,
-                  decoration: BoxDecoration(
-                    color: colors[i % colors.length],
-                    shape: BoxShape.circle,
+            return Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: barColors[i % barColors.length].withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                    color:
+                        barColors[i % barColors.length].withValues(alpha: 0.3)),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 10,
+                    height: 10,
+                    decoration: BoxDecoration(
+                      color: barColors[i % barColors.length],
+                      shape: BoxShape.circle,
+                    ),
                   ),
-                ),
-                const SizedBox(width: 4),
-                Text(products[i].name, style: const TextStyle(fontSize: 12)),
-              ],
+                  const SizedBox(width: 6),
+                  Text(
+                    '${products[i].brand} - ${products[i].name}',
+                    style: const TextStyle(
+                        fontSize: 11, fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
             );
           }),
         ),

@@ -14,6 +14,8 @@ import '../../providers/review_provider.dart';
 import '../../providers/budget_provider.dart';
 import '../../data/models/user_model.dart';
 import '../../data/models/budget_model.dart';
+import '../../providers/chatbot_provider.dart';
+import '../../core/widgets/smart_image.dart';
 import '../../core/utils/helpers.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
@@ -321,6 +323,20 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       orElse: () => '4',
     );
 
+    final uploadedImagesCount = userReviewsAsync.maybeWhen(
+      data: (reviews) {
+        int count = 0;
+        for (final r in reviews) {
+          count += r.images.length;
+        }
+        return '$count';
+      },
+      orElse: () => '0',
+    );
+
+    final savedChartsList = ref.watch(savedChatbotChartsProvider);
+    final savedChartsValue = '${savedChartsList.length}';
+
     return Scaffold(
       appBar: CustomAppBar(
         title: 'My Profile',
@@ -354,7 +370,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 
                 const SizedBox(height: AppSizes.p24),
                 
-                // Stats Card
+                // Stats Card - Row 1
                 Row(
                   children: [
                     Expanded(
@@ -374,6 +390,33 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         title: isDealer ? 'Store Rating' : 'Saved Estimates',
                         value: isDealer ? storeRatingValue : savedEstimatesValue,
                         onTap: isDealer ? null : _showSavedEstimatesSheet,
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: AppSizes.p16),
+
+                // Stats Card - Row 2: Images & Charts
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildStatTile(
+                        context: context,
+                        icon: Icons.photo_library_outlined,
+                        title: 'Uploaded Images',
+                        value: uploadedImagesCount,
+                        onTap: () => _showUploadedImagesSheet(user.uid),
+                      ),
+                    ),
+                    const SizedBox(width: AppSizes.p16),
+                    Expanded(
+                      child: _buildStatTile(
+                        context: context,
+                        icon: Icons.auto_awesome_outlined,
+                        title: 'Saved Charts',
+                        value: savedChartsValue,
+                        onTap: _showChartsSheet,
                       ),
                     ),
                   ],
@@ -1278,6 +1321,343 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                           loading: () => const Center(child: CircularProgressIndicator()),
                           error: (err, stack) => Center(child: Text('Error: $err')),
                         ),
+                      ),
+                    ],
+                  );
+                },
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _showUploadedImagesSheet(String userId) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return DraggableScrollableSheet(
+          initialChildSize: 0.6,
+          minChildSize: 0.4,
+          maxChildSize: 0.9,
+          builder: (context, scrollController) {
+            final isDark = Theme.of(context).brightness == Brightness.dark;
+            return Container(
+              decoration: BoxDecoration(
+                color: isDark ? Colors.grey[900] : Colors.white,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(AppSizes.radiusL)),
+              ),
+              padding: const EdgeInsets.all(AppSizes.p20),
+              child: Consumer(
+                builder: (context, ref, child) {
+                  final reviewsAsync = ref.watch(userReviewsProvider(userId));
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Center(
+                        child: Container(
+                          width: 40,
+                          height: 5,
+                          decoration: BoxDecoration(
+                            color: Colors.grey[400],
+                            borderRadius: BorderRadius.circular(AppSizes.radiusS),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: AppSizes.p16),
+                      Text(
+                        'Uploaded Images',
+                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: AppSizes.p4),
+                      Text(
+                        'Photos uploaded with your reviews and project feedback',
+                        style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
+                      ),
+                      const SizedBox(height: AppSizes.p16),
+                      Expanded(
+                        child: reviewsAsync.when(
+                          data: (reviews) {
+                            final List<String> allImages = [];
+                            for (final r in reviews) {
+                              allImages.addAll(r.images);
+                            }
+
+                            if (allImages.isEmpty) {
+                              return const Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.photo_library_outlined, size: 64, color: Colors.grey),
+                                    SizedBox(height: 12),
+                                    Text('No uploaded images found.', style: TextStyle(fontSize: 15, color: Colors.grey)),
+                                    SizedBox(height: 4),
+                                    Text('Images attached during review submissions will appear here.', style: TextStyle(fontSize: 12, color: Colors.grey), textAlign: TextAlign.center),
+                                  ],
+                                ),
+                              );
+                            }
+
+                            return GridView.builder(
+                              controller: scrollController,
+                              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 3,
+                                crossAxisSpacing: 10,
+                                mainAxisSpacing: 10,
+                              ),
+                              itemCount: allImages.length,
+                              itemBuilder: (context, index) {
+                                final imgPath = allImages[index];
+                                return GestureDetector(
+                                  onTap: () {
+                                    showDialog(
+                                      context: context,
+                                      builder: (context) => Dialog(
+                                        backgroundColor: Colors.transparent,
+                                        child: Stack(
+                                          alignment: Alignment.topRight,
+                                          children: [
+                                            ClipRRect(
+                                              borderRadius: BorderRadius.circular(16),
+                                              child: SmartImage(
+                                                path: imgPath,
+                                                fit: BoxFit.contain,
+                                              ),
+                                            ),
+                                            IconButton(
+                                              icon: const Icon(Icons.close, color: Colors.white, size: 30),
+                                              onPressed: () => Navigator.pop(context),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(12),
+                                    child: Container(
+                                      color: isDark ? Colors.white10 : Colors.grey.shade200,
+                                      child: SmartImage(
+                                        path: imgPath,
+                                        fit: BoxFit.cover,
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              },
+                            );
+                          },
+                          loading: () => const Center(child: CircularProgressIndicator()),
+                          error: (err, stack) => Center(child: Text('Error: $err')),
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _showChartsSheet() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return DraggableScrollableSheet(
+          initialChildSize: 0.6,
+          minChildSize: 0.4,
+          maxChildSize: 0.9,
+          builder: (context, scrollController) {
+            final isDark = Theme.of(context).brightness == Brightness.dark;
+            return Container(
+              decoration: BoxDecoration(
+                color: isDark ? Colors.grey[900] : Colors.white,
+                borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(AppSizes.radiusL)),
+              ),
+              padding: const EdgeInsets.all(AppSizes.p20),
+              child: Consumer(
+                builder: (context, ref, child) {
+                  final savedCharts = ref.watch(savedChatbotChartsProvider);
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Center(
+                        child: Container(
+                          width: 40,
+                          height: 5,
+                          decoration: BoxDecoration(
+                            color: Colors.grey[400],
+                            borderRadius:
+                                BorderRadius.circular(AppSizes.radiusS),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: AppSizes.p16),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: const [
+                              Icon(Icons.auto_awesome,
+                                  color: AppColors.primary),
+                              SizedBox(width: 8),
+                              Text(
+                                'Saved Charts & Rangmitra History',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                          if (savedCharts.isNotEmpty)
+                            TextButton(
+                              onPressed: () {
+                                ref
+                                    .read(savedChatbotChartsProvider.notifier)
+                                    .clearAll();
+                              },
+                              child: const Text('Clear All',
+                                  style: TextStyle(
+                                      color: AppColors.error, fontSize: 12)),
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Saved color consultation charts and chatbot conversation history.',
+                        style: TextStyle(
+                            fontSize: 12, color: Colors.grey.shade600),
+                      ),
+                      const SizedBox(height: AppSizes.p16),
+                      Expanded(
+                        child: savedCharts.isEmpty
+                            ? const Center(
+                                child: Text('No saved charts or history found.'),
+                              )
+                            : ListView.separated(
+                                controller: scrollController,
+                                itemCount: savedCharts.length,
+                                separatorBuilder: (context, index) =>
+                                    const SizedBox(height: AppSizes.p12),
+                                itemBuilder: (context, index) {
+                                  final chart = savedCharts[index];
+                                  return Card(
+                                    elevation: 0,
+                                    color: isDark
+                                        ? Colors.white.withValues(alpha: 0.05)
+                                        : Colors.grey.shade50,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                      side: BorderSide(
+                                          color: isDark
+                                              ? Colors.white.withValues(alpha: 0.1)
+                                              : Colors.grey.shade300),
+                                    ),
+                                    child: InkWell(
+                                      onTap: () {
+                                        ref
+                                            .read(activeChatbotSessionProvider.notifier)
+                                            .loadSession(chart);
+                                        Navigator.pop(context);
+                                        context.go('/chatbot');
+                                      },
+                                      borderRadius: BorderRadius.circular(12),
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(AppSizes.p12),
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Row(
+                                              children: [
+                                                Container(
+                                                  padding: const EdgeInsets.symmetric(
+                                                      horizontal: 8, vertical: 3),
+                                                  decoration: BoxDecoration(
+                                                    color: AppColors.primary
+                                                        .withValues(alpha: 0.12),
+                                                    borderRadius:
+                                                        BorderRadius.circular(6),
+                                                  ),
+                                                  child: Text(
+                                                    chart.category,
+                                                    style: const TextStyle(
+                                                      fontSize: 10,
+                                                      fontWeight: FontWeight.bold,
+                                                      color: AppColors.primary,
+                                                    ),
+                                                  ),
+                                                ),
+                                                const Spacer(),
+                                                Text(
+                                                  Helpers.formatDate(chart.timestamp),
+                                                  style: TextStyle(
+                                                      fontSize: 11,
+                                                      color: Colors.grey.shade500),
+                                                ),
+                                                const SizedBox(width: 4),
+                                                IconButton(
+                                                  icon: const Icon(Icons.delete_outline,
+                                                      size: 18, color: AppColors.error),
+                                                  padding: EdgeInsets.zero,
+                                                  constraints: const BoxConstraints(),
+                                                  onPressed: () {
+                                                    ref
+                                                        .read(savedChatbotChartsProvider.notifier)
+                                                        .deleteChart(chart.id);
+                                                  },
+                                                ),
+                                              ],
+                                            ),
+                                            const SizedBox(height: 8),
+                                            Text(
+                                              chart.title,
+                                              style: const TextStyle(
+                                                  fontWeight: FontWeight.bold, fontSize: 13),
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              chart.aiResponse,
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                color: isDark
+                                                    ? Colors.white70
+                                                    : Colors.grey.shade800,
+                                                height: 1.35,
+                                              ),
+                                              maxLines: 2,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                            const SizedBox(height: 8),
+                                            Row(
+                                              mainAxisAlignment: MainAxisAlignment.end,
+                                              children: const [
+                                                Text(
+                                                  'Open & Continue Chat →',
+                                                  style: TextStyle(
+                                                    fontSize: 11,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: AppColors.primary,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
                       ),
                     ],
                   );

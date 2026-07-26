@@ -5,7 +5,6 @@ import 'package:uuid/uuid.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_sizes.dart';
-import '../../../core/widgets/glass_card.dart';
 import '../../../core/widgets/gradient_button.dart';
 import '../../../data/models/complaint_model.dart';
 import '../../../providers/complaint_provider.dart';
@@ -100,56 +99,56 @@ class DashboardGrid extends ConsumerWidget {
         title: 'Search Product',
         subtitle: 'Explore paints & primers',
         icon: Icons.format_paint_outlined,
-        color: AppColors.primary,
+        gradient: const [Color(0xFF3949AB), Color(0xFF5C6BC0)],
         onTap: () => context.go('/products'),
       ),
       _GridItemData(
         title: 'Feedback',
         subtitle: 'Read & write reviews',
         icon: Icons.rate_review_outlined,
-        color: Colors.amber.shade700,
+        gradient: const [Color(0xFFEF6C00), Color(0xFFFFA726)],
         onTap: () => checkAuthAndCall(() => context.push('/reviews')),
       ),
       _GridItemData(
         title: 'Comparison',
         subtitle: 'Compare side by side',
         icon: Icons.compare_arrows_rounded,
-        color: AppColors.accent,
+        gradient: const [Color(0xFF00695C), Color(0xFF26A69A)],
         onTap: () => context.go('/compare'),
       ),
       _GridItemData(
-        title: 'Complaints & Queries',
+        title: 'Complaints',
         subtitle: 'Get support or log issues',
         icon: Icons.support_agent_outlined,
-        color: Colors.red.shade600,
+        gradient: const [Color(0xFFC62828), Color(0xFFEF5350)],
         onTap: () => checkAuthAndCall(() => _showComplaintsModal(context)),
       ),
       _GridItemData(
         title: 'Warranty',
         subtitle: 'Check coverage & terms',
         icon: Icons.gpp_good_outlined,
-        color: Colors.teal.shade600,
+        gradient: const [Color(0xFF00796B), Color(0xFF4DB6AC)],
         onTap: () => checkAuthAndCall(() => _showWarrantyModal(context)),
       ),
       _GridItemData(
         title: 'Calculate Budget',
         subtitle: 'Estimate quantity & cost',
         icon: Icons.calculate_outlined,
-        color: Colors.purple.shade600,
+        gradient: const [Color(0xFF6A1B9A), Color(0xFFAB47BC)],
         onTap: () => checkAuthAndCall(() => context.go('/budget')),
       ),
       _GridItemData(
         title: 'History',
         subtitle: 'View recent activities',
         icon: Icons.history_rounded,
-        color: Colors.blue.shade600,
+        gradient: const [Color(0xFF1565C0), Color(0xFF42A5F5)],
         onTap: () => checkAuthAndCall(() => _showHistoryModal(context)),
       ),
       _GridItemData(
         title: 'Profile',
         subtitle: 'Manage account details',
         icon: Icons.person_outline_rounded,
-        color: Colors.indigo.shade600,
+        gradient: const [Color(0xFF283593), Color(0xFF5C6BC0)],
         onTap: () => checkAuthAndCall(() => context.go('/profile')),
       ),
     ];
@@ -157,11 +156,29 @@ class DashboardGrid extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Dashboard Tools',
-          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                fontWeight: FontWeight.bold,
+        // Section title with decorative accent
+        Row(
+          children: [
+            Container(
+              width: 4,
+              height: 24,
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF1A237E), Color(0xFF00695C)],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                ),
+                borderRadius: BorderRadius.circular(2),
               ),
+            ),
+            const SizedBox(width: 10),
+            Text(
+              'Dashboard Tools',
+              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+            ),
+          ],
         ),
         const SizedBox(height: AppSizes.p16),
         GridView.builder(
@@ -169,14 +186,14 @@ class DashboardGrid extends ConsumerWidget {
           physics: const NeverScrollableScrollPhysics(),
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: columns,
-            crossAxisSpacing: AppSizes.p16,
-            mainAxisSpacing: AppSizes.p16,
-            childAspectRatio: size.width > 900 ? 1.25 : 1.15,
+            crossAxisSpacing: AppSizes.p12,
+            mainAxisSpacing: AppSizes.p12,
+            childAspectRatio: size.width > 900 ? 1.25 : 1.1,
           ),
           itemCount: items.length,
           itemBuilder: (context, index) {
             final item = items[index];
-            return _DashboardGridItem(data: item);
+            return _DashboardGridItem(data: item, index: index);
           },
         ),
       ],
@@ -188,95 +205,219 @@ class _GridItemData {
   final String title;
   final String subtitle;
   final IconData icon;
-  final Color color;
+  final List<Color> gradient;
   final VoidCallback onTap;
 
   _GridItemData({
     required this.title,
     required this.subtitle,
     required this.icon,
-    required this.color,
+    required this.gradient,
     required this.onTap,
   });
 }
 
 class _DashboardGridItem extends StatefulWidget {
   final _GridItemData data;
+  final int index;
 
-  const _DashboardGridItem({required this.data});
+  const _DashboardGridItem({required this.data, required this.index});
 
   @override
   State<_DashboardGridItem> createState() => _DashboardGridItemState();
 }
 
-class _DashboardGridItemState extends State<_DashboardGridItem> {
+class _DashboardGridItemState extends State<_DashboardGridItem>
+    with SingleTickerProviderStateMixin {
   bool _isHovered = false;
+  late final AnimationController _controller;
+  late final Animation<double> _fadeAnimation;
+  late final Animation<Offset> _slideAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: Duration(milliseconds: 400 + (widget.index * 80)),
+      vsync: this,
+    );
+    _fadeAnimation = CurvedAnimation(parent: _controller, curve: Curves.easeOut);
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.15),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
+    _controller.forward();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final gradStart = widget.data.gradient[0];
+    final gradEnd = widget.data.gradient[1];
 
-    return MouseRegion(
-      onEnter: (_) => setState(() => _isHovered = true),
-      onExit: (_) => setState(() => _isHovered = false),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        transform: _isHovered
-            ? (Matrix4.translationValues(0.0, -4.0, 0.0) * Matrix4.diagonal3Values(1.02, 1.02, 1.0))
-            : Matrix4.identity(),
-        child: GlassCard(
-          padding: EdgeInsets.zero,
-          child: InkWell(
-            onTap: widget.data.onTap,
-            borderRadius: BorderRadius.circular(AppSizes.radiusXL),
-            child: Padding(
-              padding: const EdgeInsets.all(AppSizes.p16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(AppSizes.p8),
-                    decoration: BoxDecoration(
-                      color: widget.data.color.withValues(alpha: 0.12),
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: widget.data.color.withValues(alpha: 0.25),
-                        width: 1.2,
-                      ),
+    return FadeTransition(
+      opacity: _fadeAnimation,
+      child: SlideTransition(
+        position: _slideAnimation,
+        child: MouseRegion(
+          onEnter: (_) => setState(() => _isHovered = true),
+          onExit: (_) => setState(() => _isHovered = false),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            transform: _isHovered
+                ? (Matrix4.translationValues(0.0, -4.0, 0.0))
+                : Matrix4.identity(),
+            child: Material(
+              color: Colors.transparent,
+              borderRadius: BorderRadius.circular(AppSizes.radiusXL),
+              child: InkWell(
+                onTap: widget.data.onTap,
+                borderRadius: BorderRadius.circular(AppSizes.radiusXL),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? Colors.white.withValues(alpha: 0.06)
+                        : Colors.white,
+                    borderRadius: BorderRadius.circular(AppSizes.radiusXL),
+                    border: Border.all(
+                      color: isDark
+                          ? Colors.white.withValues(alpha: 0.08)
+                          : Colors.grey.shade200,
                     ),
-                    child: Icon(
-                      widget.data.icon,
-                      color: widget.data.color,
-                      size: 26,
-                    ),
-                  ),
-                  const SizedBox(height: AppSizes.p12),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        widget.data.title,
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 15,
-                            ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        widget.data.subtitle,
-                        style: TextStyle(
-                          fontSize: 11.5,
-                          color: isDark ? Colors.white54 : Colors.grey.shade600,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                    boxShadow: [
+                      BoxShadow(
+                        color: _isHovered
+                            ? gradStart.withValues(alpha: 0.18)
+                            : Colors.black.withValues(alpha: 0.04),
+                        blurRadius: _isHovered ? 16 : 8,
+                        offset: const Offset(0, 4),
                       ),
                     ],
                   ),
-                ],
+                  child: Stack(
+                    children: [
+                      // Left gradient accent bar
+                      Positioned(
+                        left: 0,
+                        top: 16,
+                        bottom: 16,
+                        child: Container(
+                          width: 4,
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [gradStart, gradEnd],
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                            ),
+                            borderRadius: const BorderRadius.only(
+                              topRight: Radius.circular(4),
+                              bottomRight: Radius.circular(4),
+                            ),
+                          ),
+                        ),
+                      ),
+
+                      // Content
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(
+                            AppSizes.p16, AppSizes.p16, AppSizes.p12, AppSizes.p16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            // Icon container
+                            Container(
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [
+                                    gradStart.withValues(alpha: 0.12),
+                                    gradEnd.withValues(alpha: 0.06),
+                                  ],
+                                ),
+                                borderRadius: BorderRadius.circular(14),
+                                border: Border.all(
+                                  color: gradStart.withValues(alpha: 0.2),
+                                  width: 1,
+                                ),
+                              ),
+                              child: Icon(
+                                widget.data.icon,
+                                color: gradStart,
+                                size: 26,
+                              ),
+                            ),
+
+                            // Title + Subtitle + Arrow
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        widget.data.title,
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .titleMedium
+                                            ?.copyWith(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 14.5,
+                                            ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                      const SizedBox(height: 3),
+                                      Text(
+                                        widget.data.subtitle,
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          color: isDark
+                                              ? Colors.white54
+                                              : Colors.grey.shade500,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                // Arrow indicator
+                                AnimatedContainer(
+                                  duration: const Duration(milliseconds: 200),
+                                  padding: const EdgeInsets.all(4),
+                                  decoration: BoxDecoration(
+                                    color: _isHovered
+                                        ? gradStart.withValues(alpha: 0.1)
+                                        : Colors.transparent,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Icon(
+                                    Icons.arrow_forward_ios_rounded,
+                                    size: 12,
+                                    color: _isHovered
+                                        ? gradStart
+                                        : (isDark
+                                            ? Colors.white30
+                                            : Colors.grey.shade400),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ),
           ),

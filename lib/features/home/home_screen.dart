@@ -32,43 +32,29 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Vasavi Traders', style: TextStyle(fontWeight: FontWeight.bold)),
-        centerTitle: false,
-        actions: [
-          IconButton(
-            icon: CircleAvatar(
-              radius: 16,
-              backgroundImage: Helpers.getAvatarImageProvider(
-                user?.photoUrl ?? '',
-                user?.email ?? user?.phoneNumber ?? 'customer',
-              ),
-            ),
-            onPressed: () => context.push('/profile'),
-          ),
-          const SizedBox(width: AppSizes.p16),
-        ],
-      ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(AppSizes.p16, AppSizes.p16, AppSizes.p16, AppSizes.p32),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Welcome, $userName!',
-              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+            // ── Gradient Hero Header ──
+            _HeroHeader(
+              userName: userName,
+              avatarUrl: user?.photoUrl ?? '',
+              avatarSeed: user?.email ?? user?.phoneNumber ?? 'customer',
+              onAvatarTap: () => context.push('/profile'),
             ),
-            const SizedBox(height: AppSizes.p8),
-            Text(
-              'Track offers, estimate budgets, compare paints, and review product protection in one place.',
-              style: Theme.of(context).textTheme.bodyLarge,
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                  AppSizes.p16, AppSizes.p20, AppSizes.p16, AppSizes.p32),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: const [
+                  ShopOfferCarousel(),
+                  SizedBox(height: AppSizes.p24),
+                  DashboardGrid(),
+                ],
+              ),
             ),
-            const SizedBox(height: AppSizes.p24),
-            const ShopOfferCarousel(),
-            const SizedBox(height: AppSizes.p24),
-            const DashboardGrid(),
           ],
         ),
       ),
@@ -76,3 +62,141 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Gradient Hero Header
+// ─────────────────────────────────────────────────────────────────────────────
+class _HeroHeader extends StatelessWidget {
+  final String userName;
+  final String avatarUrl;
+  final String avatarSeed;
+  final VoidCallback onAvatarTap;
+
+  const _HeroHeader({
+    required this.userName,
+    required this.avatarUrl,
+    required this.avatarSeed,
+    required this.onAvatarTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final topPadding = MediaQuery.of(context).padding.top;
+
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.fromLTRB(
+          AppSizes.p24, topPadding + AppSizes.p20, AppSizes.p24, AppSizes.p24),
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Color(0xFF1A237E), Color(0xFF00695C)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(28),
+          bottomRight: Radius.circular(28),
+        ),
+      ),
+      child: Stack(
+        children: [
+          // Decorative watermark icon
+          Positioned(
+            right: -20,
+            top: -10,
+            child: Icon(
+              Icons.format_paint_rounded,
+              size: 140,
+              color: Colors.white.withValues(alpha: 0.06),
+            ),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Top row: store name + avatar
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Icon(
+                          Icons.storefront_rounded,
+                          color: Colors.white,
+                          size: 22,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      const Text(
+                        'Vasavi Traders',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 0.3,
+                        ),
+                      ),
+                    ],
+                  ),
+                  GestureDetector(
+                    onTap: onAvatarTap,
+                    child: Container(
+                      padding: const EdgeInsets.all(3),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.5),
+                            width: 2),
+                      ),
+                      child: CircleAvatar(
+                        radius: 20,
+                        backgroundImage: Helpers.getAvatarImageProvider(
+                          avatarUrl,
+                          avatarSeed,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+
+              // Greeting
+              Text(
+                'Welcome back,',
+                style: TextStyle(
+                  color: Colors.white.withValues(alpha: 0.75),
+                  fontSize: 15,
+                  fontWeight: FontWeight.w400,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                '$userName 👋',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 26,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 0.2,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Track offers, estimate budgets, compare paints, and review product protection in one place.',
+                style: TextStyle(
+                  color: Colors.white.withValues(alpha: 0.7),
+                  fontSize: 13,
+                  height: 1.4,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
