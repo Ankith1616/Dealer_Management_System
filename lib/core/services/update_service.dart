@@ -40,7 +40,7 @@ class AppUpdateInfo {
 class AppUpdateService {
   /// Default remote config URL (Replace with your GitHub Gist, Raw GitHub file, or server endpoint)
   static const String _defaultConfigUrl =
-      'https://raw.githubusercontent.com/ColorCraftPaints/app-config/main/version_config.json';
+      'https://raw.githubusercontent.com/Ankith1616/Dealer_Management_System/main/version_config.json';
 
   static bool _hasCheckedThisSession = false;
 

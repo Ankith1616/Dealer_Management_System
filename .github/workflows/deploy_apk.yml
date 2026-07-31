@@ -1,0 +1,44 @@
+name: Build & Auto-Deploy APK
+
+on:
+  push:
+    tags:
+      - 'v*' # Triggers when you create a tag like v1.1.0
+    branches:
+      - main # Or whenever code is pushed to main
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build Android APK
+        run: flutter build apk --release
+
+      - name: Create GitHub Release & Upload APK
+        uses: softprops/action-gh-release@v2
+        with:
+          files: build/app/outputs/flutter-apk/app-release.apk
+          name: Release ${{ github.ref_name }}
+          body: |
+            🚀 Automatic release generated from commit ${{ github.sha }}.
+            Download the attached `app-release.apk` to install the update.
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
