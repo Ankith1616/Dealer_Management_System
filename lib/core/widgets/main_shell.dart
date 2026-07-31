@@ -4,7 +4,9 @@ import '../constants/app_colors.dart';
 import '../constants/app_sizes.dart';
 import '../utils/responsive.dart';
 
-class MainShell extends StatelessWidget {
+import '../services/update_service.dart';
+
+class MainShell extends StatefulWidget {
   final Widget child;
   final String currentPath;
 
@@ -14,12 +16,25 @@ class MainShell extends StatelessWidget {
     required this.currentPath,
   });
 
+  @override
+  State<MainShell> createState() => _MainShellState();
+}
+
+class _MainShellState extends State<MainShell> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      AppUpdateService.checkForUpdates(context);
+    });
+  }
+
   int _getSelectedIndex() {
-    if (currentPath.startsWith('/home')) return 0;
-    if (currentPath.startsWith('/products')) return 1;
-    if (currentPath.startsWith('/chatbot')) return 2;
-    if (currentPath.startsWith('/compare')) return 3;
-    if (currentPath.startsWith('/budget')) return 4;
+    if (widget.currentPath.startsWith('/home')) return 0;
+    if (widget.currentPath.startsWith('/products')) return 1;
+    if (widget.currentPath.startsWith('/chatbot')) return 2;
+    if (widget.currentPath.startsWith('/compare')) return 3;
+    if (widget.currentPath.startsWith('/budget')) return 4;
     return 0;
   }
 
@@ -51,7 +66,7 @@ class MainShell extends StatelessWidget {
     // We use responsive helper to decide layout
     return Responsive(
       mobile: Scaffold(
-        body: child,
+        body: widget.child,
         bottomNavigationBar: Container(
           decoration: BoxDecoration(
             boxShadow: [
@@ -152,7 +167,7 @@ class MainShell extends StatelessWidget {
               ],
             ),
             const VerticalDivider(thickness: 1, width: 1),
-            Expanded(child: child),
+            Expanded(child: widget.child),
           ],
         ),
       ),

@@ -17,6 +17,7 @@ import '../../data/models/budget_model.dart';
 import '../../providers/chatbot_provider.dart';
 import '../../core/widgets/smart_image.dart';
 import '../../core/utils/helpers.dart';
+import '../../core/services/update_service.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -466,6 +467,19 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         subtitle: const Text('Update your login security credentials'),
                         trailing: const Icon(Icons.chevron_right),
                         onTap: _showChangePasswordDialog,
+                      ),
+                      const Divider(height: 1),
+                      ListTile(
+                        leading: const Icon(Icons.system_update_rounded, color: AppColors.primary),
+                        title: const Text('Check for App Updates'),
+                        subtitle: const Text('Check if a newer version is available'),
+                        trailing: const Icon(Icons.chevron_right),
+                        onTap: () {
+                          AppUpdateService.checkForUpdates(
+                            context,
+                            isManualCheck: true,
+                          );
+                        },
                       ),
                     ],
                   ),
