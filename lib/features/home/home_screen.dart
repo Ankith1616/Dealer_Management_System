@@ -119,15 +119,26 @@ class _HeroHeader extends StatelessWidget {
                   Row(
                     children: [
                       Container(
-                        padding: const EdgeInsets.all(8),
+                        padding: const EdgeInsets.all(4),
                         decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.15),
+                          color: Colors.white.withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.3)),
                         ),
-                        child: const Icon(
-                          Icons.storefront_rounded,
-                          color: Colors.white,
-                          size: 22,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: Image.asset(
+                            'assets/images/app_logo.png',
+                            width: 30,
+                            height: 30,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, error, stack) => const Icon(
+                              Icons.storefront_rounded,
+                              color: Colors.white,
+                              size: 22,
+                            ),
+                          ),
                         ),
                       ),
                       const SizedBox(width: 12),
