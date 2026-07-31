@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:package_info_plus/package_info_plus.dart';
@@ -50,6 +51,9 @@ class AppUpdateService {
     String? customConfigUrl,
     bool isManualCheck = false,
   }) async {
+    // Web app updates automatically on browser refresh — only notify mobile APK users
+    if (kIsWeb) return;
+
     if (_hasCheckedThisSession && !isManualCheck) return;
     _hasCheckedThisSession = true;
 
