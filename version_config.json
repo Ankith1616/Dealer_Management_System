@@ -1,12 +1,12 @@
 {
   "version": "1.1.0",
   "build_number": 2,
-  "download_url": "https://your-apk-download-link-here.com/colorcraft-paints-latest.apk",
+  "download_url": "https://github.com/Ankith1616/Dealer_Management_System/releases/latest/download/app-release.apk",
   "release_notes": [
-    "Added Rangmitra AI Assistant & Saved Charts",
+    "VT Lord Ganesha Logo (V-VARIETY T-TRUSTED)",
+    "Rangmitra AI Assistant & Interactive Saved Charts",
     "Enhanced Product Comparison UI & Waterproofing catalog",
-    "Added In-App Auto-Update system for instant APK updates",
-    "Performance improvements & security updates"
+    "In-App Auto-Update Notification system"
   ],
   "force_update": false
 }
